@@ -22,6 +22,7 @@ def obj_func_id(im_t,j,wph_ops,wph_streams,Sims,factr2,op_id,nGPU):
         p = wph_op(im_t_j)
 #        diff = p/(Sims[op_id]+1e-9)-1
         diff = p - Sims[op_id]
+        #print('shape of diff in obj_func_id',diff.shape)
         loss = torch.mul(diff,diff).sum()
         loss = loss*factr2
 
@@ -31,12 +32,13 @@ def obj_func_id(im_t,j,wph_ops,wph_streams,Sims,factr2,op_id,nGPU):
 def obj_func_id_1gpu(im_t,j,wph_ops,wph_streams,Sims,factr2,op_id):
     wph_op = wph_ops[op_id]
     if im_t.shape[-1]==3:
-      im_t_ = im_t[...,0]*0.2125 + im_t[...,1]*0.7154 + im_t[...,2]*0.0721
-      im_t_j = torch.nn.AvgPool2d(2**j)(im_t_)
+        im_t_ = im_t[...,0]*0.2125 + im_t[...,1]*0.7154 + im_t[...,2]*0.0721
+        im_t_j = torch.nn.AvgPool2d(2**j)(im_t_)
     else:
         im_t_j = torch.nn.AvgPool2d(2**j)(im_t)
     p = wph_op(im_t_j)
     diff = p - Sims[op_id]
+    #print('shape of diff in obj_func_id',diff.shape)
     loss = torch.mul(diff,diff).sum()
     loss = loss*factr2
 

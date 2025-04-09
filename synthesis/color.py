@@ -12,8 +12,8 @@ from routine_color import *
 from hist import *
 
 torch.backends.cudnn.deterministic = True
-torch.manual_seed(999)
-torch.cuda.manual_seed_all(999)
+#torch.manual_seed(999)
+#torch.cuda.manual_seed_all(999)
 
 gpu = True
 
