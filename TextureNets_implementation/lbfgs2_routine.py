@@ -101,4 +101,4 @@ def call_lbfgs2_routine(FOLOUT,labelname,im,wph_ops,Sims,N,Krec,nb_restarts,maxi
             
         syn_imgs[:,:,krec] = tensor_opt.numpy()
         
-    return syn_imgs
+    return syn_imgs # (h,w,bs)

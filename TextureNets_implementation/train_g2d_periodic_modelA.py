@@ -191,8 +191,8 @@ for n_iter in range(max_iter):
     if n_iter%save_params == (save_params-1):
         # plot last sample in z_batches
         texture_synthesis = batch_sample.detach().cpu().squeeze() # torch (h,w)
-        #syn_pdf_name = outdir + '/training_'  + str(n_iter+1)
-        syn_pdf_name = outdir + '/trained_samples'
+        syn_pdf_name = outdir + '/training_'  + str(n_iter+1)
+        #syn_pdf_name = outdir + '/trained_samples'
         save2pdf_gray(syn_pdf_name,texture_synthesis,vmin=vmin,vmax=vmax)
         texture_synthesis_imgs = np.zeros((im_size,im_size,batch_size))
         for i in range(batch_size):
