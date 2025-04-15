@@ -14,6 +14,8 @@ import math
 from PIL import Image
 import numpy as np
 import skimage.transform as sk
+import matplotlib
+matplotlib.use('Agg')
 
 import torch
 import torch.optim as optim
@@ -32,11 +34,10 @@ gpu = True
 
 # training parameters
 batch_size = 10
-max_iter = 3000
-#show_iter = 10
+max_iter = 10000
 save_params = int(max_iter/10)
 learning_rate = 0.1
-lr_adjust = 300
+lr_adjust = 1000
 lr_decay_coef = 0.8
 min_lr = 0.001
 use_GN = 0 # if use gradient normalization
@@ -189,5 +190,3 @@ numpy.save('./Trained_models/'+out_folder_name+'/loss_history',loss_history)
 
 copyfile('./train_g2d_periodic_vgg_color.py',
         './Trained_models/' + out_folder_name + '/code.txt')
-
-

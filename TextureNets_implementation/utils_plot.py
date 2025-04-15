@@ -4,12 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 import scipy.io as sio
+import seaborn as sns
+import torch
 
 # TODO check cmap0 why gray?
 def plot2pdf(img,pdfname,cmin=-0.5,cmax=0.5,cmap0='gray',asp='equal'):
-    # img: numpy (h,w,3)
-    fig = plt.figure() # frameon=False)
-    sizes = img.shape # [0],img.shape[1])
+    # img: numpy (h,w,3) or (h,w)
+    fig = plt.figure()
+    sizes = img.shape
     fig.set_size_inches(1. * sizes[0] / sizes[1], 1, forward = False)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
@@ -25,9 +27,27 @@ def save2pdf(input_pdf_name,im):
     # save in .pdf format
     plot2pdf(im, input_pdf_name,
              cmin=0, cmax=1)
+
+def save2mat(input_pdf_name,imgs):
+    # TODO
+    assert(false)
+    # input imgs: (3,M,N,K)
     # save in .mat format
     d = dict()
-    d['im'] = im
+    d['imgs'] = np.moveaxis(imgs, -1, 0) # TODO wrong (3,M,N)
+    sio.savemat(input_pdf_name+'.mat',d)
+    
+def save2pdf_gray(input_pdf_name,im,vmin,vmax):
+    # im : numpy (h,w)    
+    # save in .pdf format
+    plot2pdf(im, input_pdf_name,
+             cmin=vmin, cmax=vmax)
+    
+def save2mat_gray(input_pdf_name,imgs):
+    # imgs: (M,N,K)    
+    # save in .mat format
+    d = dict()
+    d['imgs'] = imgs 
     sio.savemat(input_pdf_name+'.mat',d)
     
 def uniform_hist(X):
@@ -73,3 +93,25 @@ def histogram_matching(org_image, match_image,n_bins=100):
         matched_image[:,:,i] = inv_cdf(r).reshape(org_image[:,:,i].shape)
 
     return matched_image
+
+
+def get_cmap(n, name='hsv'):
+    '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct 
+    RGB color; the keyword argument name must be a standard mpl colormap name.'''
+    if name == 'hsv':
+        return plt.cm.get_cmap(name, n)
+    elif name == 'hls':
+        return sns.color_palette(palette='hls',n_colors=n).as_hex()
+    else:
+        assert(false)
+        
+def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1): 
+    n,c,w,h = tensor.shape
+
+    if allkernels: tensor = tensor.view(n*c, -1, w, h)
+    elif c != 3: tensor = tensor[:,ch,:,:].unsqueeze(dim=1)
+
+    rows = np.min((tensor.shape[0] // nrow + 1, 64))    
+    grid = utils.make_grid(tensor, nrow=nrow, normalize=True, padding=padding)
+    
+    return nrow,rows,grid.numpy().transpose((1, 2, 0))

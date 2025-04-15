@@ -112,13 +112,14 @@ root = './iclr_color/'
 im_dir = args.image + '/'
 name = 'vgg_nohist'
 if args.save:
+    # save vgg nohist
     try:
         os.mkdir(root + im_dir)
     except:
         print('dir exist',im_dir)
     # save in .mat format
     d = dict()
-    d['im'] = np.moveaxis(new_texture, -1, 0)
+    d['im'] = np.moveaxis(new_texture, -1, 0) #(3,M,N)
     d['loss'] = loss
     sio.savemat(root + im_dir + name+'.mat',
                 d)
@@ -127,23 +128,25 @@ if args.save:
              root + im_dir + name,
              cmin=0, cmax=1)
 
-new_texture = histogram_matching(new_texture, source_img_org)
 
 #root = '../iclr_color/'
 if not os.path.exists(root+args.image):
     os.mkdir(root+args.image)
 if not os.path.isfile(root+args.image+'/'+args.image+'.pdf'):
+    # save original
     # save in .pdf format
     plot2pdf(source_img_org, root+args.image+'/'+args.image,
              cmin=0, cmax=1)
     # save in .mat format
     d = dict()
     d['im'] = source_img_org
-    sio.savemat(root+args.image+'/'+args.image+'.mat',
-                d)
+    sio.savemat(root+args.image+'/'+args.image+'.mat',d)
+
+new_texture = histogram_matching(new_texture, source_img_org)    
 im_dir = args.image + '/'
 name = 'vgg'
 if args.save:
+    # save vgg
     # save in .mat format
     d = dict()
     d['im'] = np.moveaxis(new_texture, -1, 0)
