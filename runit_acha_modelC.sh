@@ -9,4 +9,6 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 python test_tur2a_periodic_modelC.py
+# OPT fini avec: 0.28438571095466614 500
+
 
