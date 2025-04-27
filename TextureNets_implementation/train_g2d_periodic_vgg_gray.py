@@ -41,11 +41,6 @@ parser.add_argument('-bs','--batch_size',type=int, default = 10)
 parser.add_argument('-lr','--learning_rate',type=float, default = 0.1)
 parser.add_argument('-factr','--factr', type=float, default=10)
 parser.add_argument('-spite','--save_per_iters', type=int, default=100)
-#parser.add_argument('-N', '--im_size', type = int, default = 256)
-#parser.add_argument('-J','--scatJ',type=int, default = 5)
-#parser.add_argument('-L','--scatL',type=int, default = 8)
-#parser.add_argument('-dn','--delta_n',type=int, default = 2)
-#parser.add_argument('-init','--init', type=str, default='normalstdbarx')
 parser.add_argument('-runid','--run_id', type=int, default=1)
 parser.add_argument('-gpu','--gpu', action='store_true')
 args = parser.parse_args()
@@ -136,15 +131,6 @@ for param in vgg.parameters():
 
 if gpu == True:
     vgg.cuda()    
-
-# test folder, backup and results
-#time_info = datetime.datetime.now()
-#out_folder_name = time_info.strftime("%Y-%m-%d") + '_' \
-#                  + input_name[:-4] \
-#                  + '_2D' + time_info.strftime("_%H%M")
-
-#if not os.path.exists('./Trained_models/' + out_folder_name):
-#    os.mkdir( './Trained_models/' + out_folder_name)
 
 # define layers, loss functions, weights and compute optimization target
 loss_layers = ['p4', 'p3', 'p2', 'p1', 'r11']
