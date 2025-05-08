@@ -5,11 +5,17 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 
-##### april 27 ######
-#python train_g2d_periodic_modelC.py -data tur2a -init normal -gpu -lr 0.001
+##### april 28 ######
 
-LOAD="ckpt/tur2a_g2d_modelC/J=5&L=8&dn=2&dj=1&dk=0&dl=4&ch=8&lr=0.001&its=500&bs=16&factr=1.0&runid=1&init=normal&spite=10&gpu=True/trained_gen_model.pt"
-python train_g2d_periodic_modelC.py -data tur2a -init normal -gpu -lr 0.0001 -load $LOAD
+python train_g2d_lin_periodic_modelA.py -data tur2a -init normal -gpu -lr 0.005 -its 2000
+
+##### april 27 ######
+
+#python train_g2d_periodic_modelA.py -data tur2a -init normal -gpu
+
+#python train_g2d_periodic_modelC.py -data tur2a -init normal -gpu -lr 0.001
+#LOAD="ckpt/tur2a_g2d_modelC/J=5&L=8&dn=2&dj=1&dk=0&dl=4&ch=8&lr=0.001&its=500&bs=16&factr=1.0&runid=1&init=normal&spite=10&gpu=True/trained_gen_model.pt"
+#python train_g2d_periodic_modelC.py -data tur2a -init normal -gpu -lr 0.0001 -load $LOAD
 
 
 ##### april 25 ######

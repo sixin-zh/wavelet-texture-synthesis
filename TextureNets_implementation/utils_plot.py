@@ -6,6 +6,7 @@ import scipy
 import scipy.io as sio
 import seaborn as sns
 import torch
+from torchvision import utils
 
 # TODO check cmap0 why gray?
 def plot2pdf(img,pdfname,cmin=-0.5,cmax=0.5,cmap0='gray',asp='equal'):
@@ -104,14 +105,18 @@ def get_cmap(n, name='hsv'):
         return sns.color_palette(palette='hls',n_colors=n).as_hex()
     else:
         assert(false)
-        
-def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1): 
+
+def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1, value_range=None):
     n,c,w,h = tensor.shape
 
     if allkernels: tensor = tensor.view(n*c, -1, w, h)
     elif c != 3: tensor = tensor[:,ch,:,:].unsqueeze(dim=1)
 
-    rows = np.min((tensor.shape[0] // nrow + 1, 64))    
-    grid = utils.make_grid(tensor, nrow=nrow, normalize=True, padding=padding)
-    
+    rows = np.min((tensor.shape[0] // nrow + 1, 64))
+    if value_range is not None:
+        grid = utils.make_grid(tensor, nrow=nrow, normalize=True, range=value_range, padding=padding)
+    else:
+        grid = utils.make_grid(tensor, nrow=nrow, normalize=True, padding=padding)
+
     return nrow,rows,grid.numpy().transpose((1, 2, 0))
+        

@@ -1,4 +1,4 @@
-# TRAIN g2d GENERATOR, 2D PERIODIC
+# TRAIN Linear conv. GENERATOR, 2D PERIODIC
 # use wph model A moments
 
 #import sys
@@ -23,7 +23,7 @@ from utils import hash_str2int2, mkdir
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from utils_arch import Pyramid2D
+from utils_arch_stationary import LinConv2D
 from utils_plot import save2pdf_gray, save2mat_gray
 
 parser = argparse.ArgumentParser()
@@ -37,25 +37,20 @@ parser.add_argument('-L','--scatL',type=int, default = 8)
 parser.add_argument('-dn','--delta_n',type=int, default = 2)
 parser.add_argument('-its', '--max_iter', type = int, default = 500)
 parser.add_argument('-bs','--batch_size',type=int, default = 16)
-parser.add_argument('-ch','--ch_step',type=int, default = 8)
 parser.add_argument('-lr','--learning_rate',type=float, default = 0.01)
 parser.add_argument('-factr','--factr', type=float, default=1.0)
 parser.add_argument('-init','--init', type=str, default='normalstdbarx')
 parser.add_argument('-spite','--save_per_iters', type=int, default=10)
 parser.add_argument('-runid','--run_id', type=int, default=1)
 parser.add_argument('-gpu','--gpu', action='store_true')
-parser.add_argument('-load','--load_dir', type=str, default=None)
-
 args = parser.parse_args()
-                    
+
 # test folder, backup and results
 params = {'J':args.scatJ, 'L':args.scatL, 'fs':args.filter_size,\
           'dn':args.delta_n,'lr':args.learning_rate,'its':args.max_iter,\
-          'ch':args.ch_step,'bs':args.batch_size,'factr':args.factr,\
-          'runid':args.run_id,\
-          'init':args.init,'spite':args.save_per_iters,'gpu':args.gpu,\
-          'loaddir':hash_str2int2(loaddir)}
-outdir = './ckpt/' + args.dataname + '_g2d'
+          'bs':args.batch_size,'factr':args.factr,'runid':args.run_id,\
+          'init':args.init,'spite':args.save_per_iters,'gpu':args.gpu}
+outdir = './ckpt/' + args.dataname + '_LinConv2D'                
 mkdir(outdir)
 outdir = outdir + '/' + urlencode(params)
 mkdir(outdir)
@@ -63,6 +58,7 @@ mkdir(outdir)
 # input sample
 im_id = args.im_id
 im_size = args.im_size
+n_input_ch = 1
 
 # optim
 max_iter = args.max_iter
@@ -75,7 +71,6 @@ runid = args.run_id
 
 # generator
 filter_size = args.filter_size
-ch_step = args.ch_step
 
 # wph
 J = args.scatJ
@@ -94,10 +89,8 @@ else:
 # load data
 if args.dataname == 'fbmB7':
     data = sio.loadmat('../turbulence/demo_fbmB7_N' + str(im_size) + '.mat')
-    n_input_ch = 1
 elif args.dataname == 'tur2a':
     data = sio.loadmat('../turbulence/ns_randn4_train_N' + str(im_size) + '.mat')
-    n_input_ch = 1
 else:
     assert(false)
 im = data['imgs'][:,:,im_id]
@@ -112,12 +105,7 @@ M, N = im_ori.shape[-2], im_ori.shape[-1]
 assert(M==im_size and N==im_size)
 
 # create generator network
-if loaddir is None:
-    gen = Pyramid2D(ch_in=n_input_ch, ch_step=ch_step)
-else:
-    gen = torch.load(loaddir)
-
-#gen = Pyramid2D(ch_in=n_input_ch, ch_step=8)
+gen = LinConv2D(im_size=im_size,filter_size=filter_size)
 params = list(gen.parameters())
 total_parameters = 0
 for p in params:
@@ -173,37 +161,24 @@ print('Training: current runid is',runid)
 optimizer = optim.Adam(gen.parameters(), lr=learning_rate)
 loss_history = np.zeros(max_iter)
 
-sz = [im_size/1,im_size/2,im_size/4,im_size/8,im_size/16,im_size/32]
-z_batches = []
-for i in range(batch_size):
-    zk = [torch.rand(1,n_input_ch,int(szk),int(szk)) for szk in sz]
-    if gpu:
-        zk_gpu = [z.cuda() for z in zk]
-        z_batches.append(zk_gpu)
-    else:
-        z_batches.append(zk)
-
-#z_batches = [torch.randn(1,n_input_ch,im_size,im_size) for i in range(batch_size)]
-#if gpu:
-#    z_batches = [z.cuda() for z in z_batches]
+z_batches = [torch.randn(1,n_input_ch,im_size,im_size) for i in range(batch_size)]
+if gpu:
+    z_batches = [z.cuda() for z in z_batches]
 for n_iter in range(max_iter):
     optimizer.zero_grad()
     for i in range(batch_size):
         z_samples = z_batches[i]
-        for z in z_samples:
-            z.normal_()
-        #z_samples.normal_() # resample z
+        z_samples.normal_() # resample z
         batch_sample = gen.forward(z_samples)
-        #print('batch_sample',batch_sample.shape)
-        single_loss = (1.0/batch_size)*obj_func(batch_sample,wph_ops,factr_ops,Sims)
+        single_loss = (1/(batch_size))*obj_func(batch_sample, wph_ops,factr_ops,Sims)
         single_loss.backward(retain_graph=False)
         loss_history[n_iter] = loss_history[n_iter] + single_loss.item()
         
     if n_iter%save_params == (save_params-1):
         # plot last sample in z_batches
         texture_synthesis = batch_sample.detach().cpu().squeeze() # torch (h,w)
-        syn_pdf_name = outdir + '/training_'  + str(n_iter+1)
-        #syn_pdf_name = outdir + '/trained_samples'
+        #syn_pdf_name = outdir + '/training_'  + str(n_iter+1)
+        syn_pdf_name = outdir + '/trained_samples'
         save2pdf_gray(syn_pdf_name,texture_synthesis,vmin=vmin,vmax=vmax)
         texture_synthesis_imgs = np.zeros((im_size,im_size,batch_size))
         for i in range(batch_size):
@@ -213,12 +188,13 @@ for n_iter in range(max_iter):
         torch.save(gen,outdir + '/trained_gen_model.pt')
 
     print('Iteration: %d, loss: %g'%(n_iter, loss_history[n_iter]))
+
     optimizer.step()
 
 # plot the original sample
 texture_original = im_ori.detach().cpu().squeeze() # torch (h,w)
 ori_pdf_name = outdir + '/original'
 save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
-
+   
 np.save(outdir + '/loss_history',loss_history)
-copyfile('./train_g2d_periodic_modelA.py', outdir + '/code.txt')
+copyfile('./train_fbm_periodic_modelA.py', outdir + '/code.txt')
