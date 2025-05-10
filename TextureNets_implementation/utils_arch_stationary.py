@@ -30,13 +30,13 @@ class LinConv2D(nn.Module):
 # MAIN arch in wavelet domain
 ##################
 class LinIdwt2D(nn.Module):
-    def __init__(self, im_size, J, filter_size):       
+    def __init__(self, im_size, J, filter_size, wavelet='db3'):       
         # each scale filter size = filter_size / 2^j + 1, j=1..J
         super(LinIdwt2D, self).__init__()
         self.J = J
         assert(filter_size >= 2**J)
-        self.xfm = DWTForward(J=J, mode='periodization', wave='db3')
-        self.ifm = DWTInverse(mode='periodization', wave='db3')
+        self.xfm = DWTForward(J=J, mode='periodization', wave=wavelet)
+        self.ifm = DWTInverse(mode='periodization', wave=wavelet)
         
         # build conv layers
         n_ch_in = 1
@@ -46,6 +46,7 @@ class LinIdwt2D(nn.Module):
         for j in range(1,J+1):
             fs_j = filter_size // (2**j) + 1 # use odd size filter to make padding
             pad = (fs_j-1)//2
+            assert(fs_j % 2 == 1)
             for k in range(3):
                 # each 2d channel hh,hv,vv
                 convlayer = nn.Conv2d(n_ch_in, n_ch_out, fs_j, \
@@ -57,6 +58,7 @@ class LinIdwt2D(nn.Module):
         # low pass
         fs_j = filter_size // (2**J) + 1 
         pad = (fs_j-1)//2
+        assert(fs_j % 2 == 1)
         convlayer = nn.Conv2d(n_ch_in, n_ch_out, fs_j, \
                               padding=pad,padding_mode='circular',\
                               bias=use_bias)
@@ -90,7 +92,7 @@ class LinIdwt2D(nn.Module):
                 djk.append(self.conv_h[idx](Yh[j-1][:,:,k,:,:]))
                 idx += 1
 #             print('djk',djk[0].shape,djk[1].shape)
-            dj.append(torch.cat((djk[0],djk[1],djk[2]),dim=1).unsqueeze(1))
+            dj.append(torch.cat((djk[0],djk[1],djk[2]),dim=1).unsqueeze(1)) # (mb,1,3,im_siz,im_siz)
 #             print('dj',dj[j-1].shape)
             
         # perform IDWT on aJ and dj

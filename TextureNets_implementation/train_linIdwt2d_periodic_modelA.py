@@ -37,15 +37,14 @@ parser.add_argument('-data', '--dataname', type = str, default = 'fbmB7')
 parser.add_argument('-ks', '--im_id', type = int, default = 0)
 parser.add_argument('-N', '--im_size', type = int, default = 256)
 parser.add_argument('-J','--scatJ',type=int, default = 5)
-parser.add_argument('-fs','--filter_size',type=int, default = 64)
 parser.add_argument('-L','--scatL',type=int, default = 8)
+parser.add_argument('-fs','--filter_size',type=int, default = 64)
 parser.add_argument('-dn','--delta_n',type=int, default = 2)
 parser.add_argument('-its', '--max_iter', type = int, default = 500)
 parser.add_argument('-bs','--batch_size',type=int, default = 16)
-parser.add_argument('-lr','--learning_rate',type=float, default = 0.01)
 parser.add_argument('-factr','--factr', type=float, default=10.0)
 parser.add_argument('-init','--init', type=str, default='normal')
-#parser.add_argument('-spite','--save_per_iters', type=int, default=10)
+parser.add_argument('-wave','--wavelet', type=str, default='db3')
 parser.add_argument('-runid','--run_id', type=int, default=1)
 parser.add_argument('-gpu','--gpu', action='store_true')
 parser.add_argument('-load','--load_dir', type=str, default=None)
@@ -54,11 +53,10 @@ args = parser.parse_args()
 loaddir = args.load_dir
 
 # test folder, backup and results
-params = {'J':args.scatJ, 'L':args.scatL,\
-          'dn':args.delta_n,'lr':args.learning_rate,'its':args.max_iter,\
+params = {'J':args.scatJ, 'L':args.scatL,'dn':args.delta_n,'its':args.max_iter,\
           'fs':args.filter_size,'bs':args.batch_size,'factr':args.factr,\
           'runid':args.run_id,'init':args.init,'gpu':args.gpu,\
-          'loaddir':hash_str2int2(loaddir)}
+          'loaddir':hash_str2int2(loaddir),'wave':args.wavelet}
 outdir = './ckpt/' + args.dataname + '_linIdwt2d_modelA'
 mkdir(outdir)
 outdir = outdir + '/' + urlencode(params)
@@ -80,6 +78,7 @@ runid = args.run_id
 
 # generator
 filter_size = args.filter_size
+wave = args.wavelet
 
 # wph
 J = args.scatJ
@@ -115,7 +114,7 @@ assert(M==im_size and N==im_size)
 
 # create generator network
 if loaddir is None:
-    gen = LinIdwt2D(im_size, J, filter_size = filter_size)
+    gen = LinIdwt2D(im_size, J, filter_size = filter_size, wavelet=wave)
 else:
     gen = torch.load(loaddir)
 
@@ -163,7 +162,7 @@ def obj_func(xbatch,wph_ops,factr_ops,Sims):
         loss_t = obj_func_id(xbatch,wph_ops,factr_ops,Sims,op_id)
         #loss_t.backward() # chunk
         loss = loss + loss_t
-    return loss    
+    return loss
 
 print('Training: current runid is',runid)
 

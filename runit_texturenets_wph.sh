@@ -5,9 +5,47 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 
+##### april 9 ######
+
+python train_linIdwt2d_periodic_modelA_altgda.py -gpu  -fs 64 -wave db7 -data tur2a -etag 0.1 -etad 0.1 -tau 5 -bs 16 -its 5000
+
+
+#python train_linIdwt2d_periodic_modelA_altgda.py -gpu  -factr 10 -fs 64 -wave db7 -data tur2a -etag 0.1 -etad 0.1 -tau 5 -its 5000
+
+
+#python train_linIdwt2d_periodic_modelA_rgda.py -gpu  -factr 10 -fs 64 -wave db7 -data tur2a -ga 0.01 -its 5000
+
+#python train_linIdwt2d_periodic_modelA_rgda.py -gpu  -factr 10 -fs 64 -wave db7 -data tur2a
+
+##### april 8 ######
+
+#python train_linIdwt2d_periodic_modelA.py -gpu  -factr 10 -fs 64 -wave db13 -data tur2a
+
+#python train_linIdwt2d_periodic_modelA.py -gpu  -factr 10 -fs 64 -wave db11 -data tur2a
+
+#python train_linIdwt2d_periodic_modelA.py -gpu  -factr 10 -fs 64 -wave db9 -data tur2a
+
+#python train_linIdwt2d_periodic_modelA.py -gpu  -factr 10 -fs 64 -wave db7 -data tur2a
+
+#python train_linIdwt2d_periodic_modelA_adam.py -gpu -its 1000  -data tur2a 
+
+#python train_linIdwt2d_periodic_modelA.py -gpu -factr 10 -fs 64 -data tur2a -runid 2
+
+#python train_linIdwt2d_periodic_modelA.py -gpu -factr 100 -fs 256 -data tur2a
+
+#python train_linIdwt2d_periodic_modelA_djl.py -factr 100 -fs 64 -data tur2a -gpu -bs 10
+
+# python train_linIdwt2d_periodic_modelA.py -gpu -factr 100 -fs 64 -data tur2a -dn 4
+
+# python train_linIdwt2d_periodic_modelA.py -gpu -factr 100 -fs 128 -data tur2a
+
+#python train_linIdwt2d_periodic_modelA.py -gpu -factr 100 -fs 64 -data tur2a -runid 2
+
+# python train_linIdwt2d_periodic_modelA.py -gpu -factr 100 -fs 64 -data tur2a
+
 ##### april 28 ######
 
-python train_g2d_lin_periodic_modelA.py -data tur2a -init normal -gpu -lr 0.005 -its 2000
+#python train_g2d_lin_periodic_modelA.py -data tur2a -init normal -gpu -lr 0.005 -its 2000
 
 ##### april 27 ######
 
