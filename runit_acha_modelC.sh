@@ -9,7 +9,11 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 #python test_tur2a_periodic_modelC.py
+
+
 python synthesis_modelC_micro.py -data tur2a -gpu
 # OPT fini avec: 0.28438571095466614 500
+
+## TODO fix modelC dl 1 -> 4
 
 
