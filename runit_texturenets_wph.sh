@@ -5,16 +5,33 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 
+##### april 13 ######
+python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.01 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 2
+
+
 ##### april 11 ######
 
-python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -rand 1 -etag 0.01 -etad 0.1 -tau 50 -its 5000 
+#python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -ch 16 -lr 0.001 -resample 1 -bs 1 -rand 0 -its 10000 -factr 10 -runid 1
+
+#python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -ch 16 -lr 0.001 -resample 0 -bs 1 -rand 0 -its 10000 -factr 10 -runid 1
+
+#LOAD="./ckpt/tur2a_g2d_modelC/J=5&L=8&dn=2&dj=1&dk=0&dl=4&ch=8&lr=0.01&its=2000&bs=1&resample=0&factr=10.0&runid=2&init=normalstdbarx&spite=10&gpu=True&loaddir=0/"
+
+#python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -lr 0.0001 -resample 0 -bs 1 -rand 0 -its 2000 -factr 10 -runid 2 -load $LOAD 
+
+#python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -lr 0.01 -resample 0 -bs 1 -rand 0 -its 2000 -factr 10 -runid 2
+
+#python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -lr 0.01 -resample 0 -bs 1 -rand 0 -its 1000 -factr 10 -runid 2
+
+#python train_g2d_periodic_modelC.py -gpu -data tur2a -init normal -lr 0.01 -resample 0 -bs 1 -rand 0 -its 1000 -factr 10 -ch 16
+
+#python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -rand 1 -etag 0.01 -etad 0.1 -tau 50 -its 50000 -spite 100
 
 # LOAD="./ckpt/tur2a_g2d_modelC_altgda/J=5&L=8&dn=2&dj=1&dk=0&dl=4&ch=8&rand=1&its=5000&lrD=0.1&lrG=0.005&tau=5&bs=1&factr=10.0&spite=10&runid=1&init=normal&gpu=True&loaddir=0"
 
-# python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 0.005 -etad 0.1 -tau 50 -its 5000 -rand 1 -load $LOAD
+#python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 0.005 -etad 0.1 -tau 50 -its 5000 -rand 1 -load $LOAD
 
 #python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 0.005 -etad 0.2 -tau 20 -its 5000 -rand 1 -load $LOAD
-
 
 # python train_g2d_periodic_modelC_altAdamGA.py -gpu -data tur2a -etag 0.00001 -etad 0.1 -tau 5 -its 5000 -rand 1 -load $LOAD
 

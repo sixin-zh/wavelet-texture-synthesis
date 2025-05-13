@@ -13,15 +13,17 @@ import matplotlib
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-import argparse
-
 import scipy.io as sio
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from lbfgs2_routine import *
 
+from lbfgs2_routine import *
 from utils_plot import save2pdf_gray, save2mat_gray
+
+import argparse
+from urllib.parse import urlencode
+from utils import hash_str2int2, mkdir
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-data', '--dataname', type = str, default = 'tur2a')
@@ -37,6 +39,9 @@ parser.add_argument('-its', '--max_iter', type = int, default = 500)
 parser.add_argument('-bs','--batch_size',type=int, default = 2)
 parser.add_argument('-factr','--factr', type=float, default=10.0)
 parser.add_argument('-init','--init', type=str, default='normal')
+parser.add_argument('-ns','--nb_restarts', type=int, default=1)
+parser.add_argument('-adam','--use_adam', action='store_true')
+parser.add_argument('-lr','--learning_rate', type=float, default=0.0)
 parser.add_argument('-gpu','--gpu', action='store_true')
 
 args = parser.parse_args()
@@ -50,9 +55,12 @@ maxite = args.max_iter
 factr = args.factr
 Krec = args.batch_size
 gpu = args.gpu
-
-maxcor = 20
-nb_restarts = 1
+nb_restarts = args.nb_restarts
+use_adam = args.use_adam
+if use_adam:
+    adam_lr = args.learning_rate
+else:
+    maxcor = 20
 
 # wph
 J = args.scatJ
@@ -134,24 +142,39 @@ for chunk_id in range(nb_chunks):
 
 print('total nbcov is',total_nbcov)
 
-FOLOUT = './results_acha/' + args.dataname + '/bump_lbfgs2_gpu_N' + str(N) + 'J' + str(J) +\
-         'L' + str(L) + 'dj' +\
-         str(delta_j) + 'dl' + str(delta_l) + 'dk' + str(delta_k) + 'dn' + str(delta_n) +\
-         '_maxkshift' + str(maxk_shift) +\
-         '_factr' + str(int(factr)) + 'maxite' + str(maxite) +\
-         'maxcor' + str(maxcor) + '_init' + init +\
-         '_ks' + str(im_id) + 'ns' + str(nb_restarts)
+if use_adam:
+    params = {'N':N,'ks':im_id, 'J':J,'L':L,\
+              'dj':delta_j,'dl':delta_l,'dk':delta_k,'dn':delta_n,\
+              'maxk':maxk_shift,'factr':args.factr,\
+              'maxite':maxite,'lr':adam_lr,\
+              'init':init,'ns':nb_restarts,'gpu':args.gpu}    
+else:
+    params = {'N':N,'ks':im_id, 'J':J,'L':L,\
+              'dj':delta_j,'dl':delta_l,'dk':delta_k,'dn':delta_n,\
+              'maxk':maxk_shift,'factr':args.factr,\
+              'maxite':maxite,'maxcor':maxcor,\
+              'init':init,'ns':nb_restarts,'gpu':args.gpu}
+outdir = './results_acha/' + args.dataname + '/'
+mkdir(outdir)
+outdir = outdir + '/' + urlencode(params)
+mkdir(outdir)
+
 labelname = 'modelC'
-os.system('mkdir -p ' + FOLOUT)
 
-syn_imgs = call_lbfgs2_routine(FOLOUT,labelname,im_ori,wph_ops,Sims,N,Krec,\
-                        nb_restarts,maxite,factr,factr_ops,init=init,\
-                        toskip=False,gpu=gpu)
+if use_adam == True:
+    syn_imgs = call_adam_routine(outdir,labelname,im_ori,wph_ops,Sims,N,Krec,\
+                                 nb_restarts,maxite,factr,factr_ops,\
+                                 lr=adam_lr,init=init,\
+                                 toskip=False,gpu=gpu)
+else:
+    syn_imgs = call_lbfgs2_routine(outdir,labelname,im_ori,wph_ops,Sims,N,Krec,\
+                                   nb_restarts,maxite,factr,factr_ops,init=init,\
+                                   toskip=False,gpu=gpu)
 
-syn_pdf_name = FOLOUT + '/modelC'
+syn_pdf_name = outdir + '/modelC'
 save2mat_gray(syn_pdf_name,syn_imgs)
 
 for k in range(Krec):
     texture_synthesis = syn_imgs[:,:,k]
-    syn_pdf_name = FOLOUT + '/modelC_sample' + str(k)
+    syn_pdf_name = outdir + '/modelC_sample' + str(k)
     save2pdf_gray(syn_pdf_name,texture_synthesis,vmin=vmin,vmax=vmax)

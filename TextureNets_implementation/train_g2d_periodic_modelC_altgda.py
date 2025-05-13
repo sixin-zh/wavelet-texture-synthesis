@@ -193,9 +193,7 @@ gradsG_delta = []
 pbar = tqdm(total = max_iter)
 for n_iter in range(max_iter):
     # TO update D first, then G
-    data_fake = netG(noise_fake)
-    data_fake_detach = data_fake.detach()
-    Features_fake = netD.compute_features(data_fake_detach)
+    
     for iter_d in range(CRITIC_ITERS):
         # get new samples
         if resample is True:
@@ -205,14 +203,14 @@ for n_iter in range(max_iter):
                 else:
                     z.normal_() # resample z
 
-        #data_fake = netG(noise_fake)
-        #data_fake_detach = data_fake.detach()
-
+        data_fake = netG(noise_fake)
+        data_fake_detach = data_fake.detach()
+        # Features_fake = netD.compute_features(data_fake_detach)
+        
         # compute loss and grads
-        #data_fake = netG(noise_fake)
         D_real = netD(Features_real,is_feature=True)
-        #D_fake = netD(data_fake_detach)
-        D_fake = netD(Features_fake,is_feature=True)
+        D_fake = netD(data_fake_detach)
+        #D_fake = netD(Features_fake,is_feature=True)
         G_cost = torch.mean(D_real) - torch.mean(D_fake)
 
         gradsD = autograd.grad([G_cost], paramsD)

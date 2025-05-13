@@ -1,6 +1,8 @@
 import os
 #from time import time
 import time
+from tqdm import tqdm
+
 import numpy as np
 import scipy.io as sio
 import torch
@@ -96,6 +98,85 @@ def call_lbfgs2_routine(FOLOUT,labelname,im,wph_ops,Sims,N,Krec,nb_restarts,maxi
             ret['normalized_loss'] = final_loss/(factr**2)
             torch.save(ret, datname)
                         
+            print('krec',krec,'strat', start, 'using time (sec):' , time.time()-time0)
+            time0 = time.time()
+            
+        syn_imgs[:,:,krec] = tensor_opt.numpy()
+        
+    return syn_imgs # (h,w,bs)
+
+
+def call_adam_routine(FOLOUT,labelname,im,wph_ops,Sims,N,Krec,nb_restarts,\
+                      maxite,factr,factr_ops,\
+                      lr=1e-2,init='normal',ncolor=1,toskip=True,gpu=True):
+    # toskip False = not to reload from checkpoints
+
+    # save to mat
+    syn_imgs = np.zeros((N,N,Krec))
+    
+    size = N
+    for krec in range(Krec):
+        if init=='normal':
+            print('init normal')
+            x0 = torch.Tensor(1, ncolor, N, N).normal_()
+        elif init=='normalstdbarx':
+            stdbarx = im.std().item()
+            print('init normal with std barx ' + str(stdbarx))
+            x0 = torch.Tensor(1, ncolor, N, N).normal_(std=stdbarx)
+        else:
+            assert(false)
+
+        x = None
+        for start in range(nb_restarts+1):
+            time0 = time.time()
+            datname =  FOLOUT + '/' + labelname + '_krec' + str(krec) + '_start' + str(start) + '.pt'
+            if os.path.isfile(datname) and toskip:
+                print('skip', datname)
+                print("last modified: %s" % time.ctime(os.path.getmtime(datname)))
+                continue
+            else:
+                print('save to',datname)
+
+            if start==0:
+                if gpu:
+                    x = x0.cuda()
+                else:
+                    x = x0
+                x.requires_grad_(True)
+            elif x is None:
+                # load from previous saved file
+                prename = FOLOUT + '/' + labelname + '_krec' + str(krec) + '_start' + str(start-1) + '.pt'
+                print('load x_opt from',prename)
+                saved_result = torch.load(prename)
+                im_opt = saved_result['tensor_opt'] # .numpy()
+                if gpu:
+                    x = im_opt.cuda()
+                else:
+                    x = im_opt
+                x.requires_grad_(True)
+
+            optimizer = optim.Adam({x}, lr=lr)
+            pbar = tqdm(total = maxite)
+            
+            for n_iter in range(maxite):
+                optimizer.zero_grad()    
+                loss = obj_func(x,wph_ops,factr_ops,Sims) # with backprop
+                optimizer.step()
+                pbar.update(1)
+                pbar.set_description("loss %s" % loss.item())
+
+            niter = maxite
+            final_loss = loss.item()
+            print('OPT fini avec:', final_loss,niter)
+            
+            #im_opt = x_opt # np.reshape(x_opt, (size,size))
+            tensor_opt = x.detach().cpu()
+            
+            ret = dict()
+            ret['tensor_opt'] = tensor_opt
+            ret['normalized_loss'] = final_loss/(factr**2)
+            torch.save(ret, datname)
+            
             print('krec',krec,'strat', start, 'using time (sec):' , time.time()-time0)
             time0 = time.time()
             
