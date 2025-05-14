@@ -8,7 +8,6 @@ cd TextureNets_implementation
 ##### april 13 ######
 python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.01 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 2
 
-
 ##### april 11 ######
 
 #python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -ch 16 -lr 0.001 -resample 1 -bs 1 -rand 0 -its 10000 -factr 10 -runid 1
