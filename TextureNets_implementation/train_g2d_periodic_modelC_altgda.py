@@ -188,7 +188,7 @@ for pa in netG.parameters():
     paramsG.append(pa)
 
 X_real = im_ori
-Features_real = netD.compute_features(X_real)
+Features_real = netD.compute_features(X_real).detach()
 gradsG_delta = []
 pbar = tqdm(total = max_iter)
 for n_iter in range(max_iter):
