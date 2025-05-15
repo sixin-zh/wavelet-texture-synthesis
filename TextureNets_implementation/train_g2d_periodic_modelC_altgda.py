@@ -192,8 +192,7 @@ Features_real = netD.compute_features(X_real).detach()
 gradsG_delta = []
 pbar = tqdm(total = max_iter)
 for n_iter in range(max_iter):
-    # TO update D first, then G
-    
+    # TO update D first, then G    
     for iter_d in range(CRITIC_ITERS):
         # get new samples
         if resample is True:

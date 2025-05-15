@@ -5,10 +5,13 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 
-##### april 13 ######
-python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.01 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 2
+##### mai 14 ######
+python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 1e-3 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 1
 
-##### april 11 ######
+##### mai 13 ######
+# python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.01 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 2
+
+##### mai 11 ######
 
 #python train_g2d_periodic_modelC.py -gpu -data tur2a -init normalstdbarx -ch 16 -lr 0.001 -resample 1 -bs 1 -rand 0 -its 10000 -factr 10 -runid 1
 
@@ -35,7 +38,7 @@ python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.0
 # python train_g2d_periodic_modelC_altAdamGA.py -gpu -data tur2a -etag 0.00001 -etad 0.1 -tau 5 -its 5000 -rand 1 -load $LOAD
 
 
-##### april 10 ######
+##### mai 10 ######
 
 # python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 0.005 -etad 0.1 -tau 5 -its 5000 -rand 1
 
@@ -46,7 +49,7 @@ python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.0
 #python train_g2d_periodic_modelA_altgda.py -gpu -data tur2a -etag 0.01 -etad 0.1 -tau 5 -its 5000
 
 
-##### april 9 ######
+##### mai 9 ######
 
 # python train_linIdwt2d_periodic_modelA_altgda.py -gpu  -fs 64 -wave db7 -data tur2a -etag 0.1 -etad 0.1 -tau 5 -bs 16 -its 5000
 
@@ -57,7 +60,7 @@ python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.0
 
 #python train_linIdwt2d_periodic_modelA_rgda.py -gpu  -factr 10 -fs 64 -wave db7 -data tur2a
 
-##### april 8 ######
+##### mai 8 ######
 
 #python train_linIdwt2d_periodic_modelA.py -gpu  -factr 10 -fs 64 -wave db13 -data tur2a
 

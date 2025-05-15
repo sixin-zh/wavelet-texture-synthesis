@@ -15,9 +15,10 @@ import torch.nn.functional as F
 #vgg definition that conveniently let's you grab the outputs from any layer
 #from Gatys' code
 class VGG(nn.Module):
-    def __init__(self, pool='max', pad=1 ):
+    def __init__(self, pool='max', pad=1, vgg_layers=5):
         super(VGG, self).__init__()
         #vgg modules
+        self.vgg_layers = vgg_layers
         self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=pad)
         self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, padding=pad)
         self.conv2_1 = nn.Conv2d(64, 128, kernel_size=3, padding=pad)
@@ -49,28 +50,35 @@ class VGG(nn.Module):
 
     def forward(self, x, out_keys):
         out = {}
-        out['c11'] = self.conv1_1(x)
-        out['r11'] = F.relu(out['c11'])
-        out['r12'] = F.relu(self.conv1_2(out['r11']))
-        out['p1'] = self.pool1(out['r12'])
-        out['r21'] = F.relu(self.conv2_1(out['p1']))
-        out['r22'] = F.relu(self.conv2_2(out['r21']))
-        out['p2'] = self.pool2(out['r22'])
-        out['r31'] = F.relu(self.conv3_1(out['p2']))
-        out['r32'] = F.relu(self.conv3_2(out['r31']))
-        out['r33'] = F.relu(self.conv3_3(out['r32']))
-        out['r34'] = F.relu(self.conv3_4(out['r33']))
-        out['p3'] = self.pool3(out['r34'])
-        out['r41'] = F.relu(self.conv4_1(out['p3']))
-        out['r42'] = F.relu(self.conv4_2(out['r41']))
-        out['r43'] = F.relu(self.conv4_3(out['r42']))
-        out['r44'] = F.relu(self.conv4_4(out['r43']))
-        out['p4'] = self.pool4(out['r44'])
-        #out['r51'] = F.relu(self.conv5_1(out['p4']))
-        #out['r52'] = F.relu(self.conv5_2(out['r51']))
-        #out['r53'] = F.relu(self.conv5_3(out['r52']))
-        #out['r54'] = F.relu(self.conv5_4(out['r53']))
-        #out['p5'] = self.pool5(out['r54'])
+        if self.vgg_layers >= 1:
+            out['c11'] = self.conv1_1(x)
+        if self.vgg_layers >= 2:
+            out['r11'] = F.relu(out['c11'])
+            out['r12'] = F.relu(self.conv1_2(out['r11']))
+            out['p1'] = self.pool1(out['r12'])
+        if self.vgg_layers >= 3:
+            out['r21'] = F.relu(self.conv2_1(out['p1']))
+            out['r22'] = F.relu(self.conv2_2(out['r21']))
+            out['p2'] = self.pool2(out['r22'])
+        if self.vgg_layers >= 4:
+            out['r31'] = F.relu(self.conv3_1(out['p2']))
+            out['r32'] = F.relu(self.conv3_2(out['r31']))
+            out['r33'] = F.relu(self.conv3_3(out['r32']))
+            out['r34'] = F.relu(self.conv3_4(out['r33']))
+            out['p3'] = self.pool3(out['r34'])
+        if self.vgg_layers >= 5:
+            out['r41'] = F.relu(self.conv4_1(out['p3']))
+            out['r42'] = F.relu(self.conv4_2(out['r41']))
+            out['r43'] = F.relu(self.conv4_3(out['r42']))
+            out['r44'] = F.relu(self.conv4_4(out['r43']))
+            out['p4'] = self.pool4(out['r44'])
+        if self.vgg_layers >= 6:
+            out['r51'] = F.relu(self.conv5_1(out['p4']))
+            out['r52'] = F.relu(self.conv5_2(out['r51']))
+            out['r53'] = F.relu(self.conv5_3(out['r52']))
+            out['r54'] = F.relu(self.conv5_4(out['r53']))
+            out['p5'] = self.pool5(out['r54'])
+
         return [out[key] for key in out_keys]
 
 #generator's convolutional blocks 2D

@@ -15,6 +15,8 @@ from PIL import Image
 import numpy as np
 import scipy.io as sio
 import matplotlib
+from tqdm import tqdm
+
 matplotlib.use('Agg')
 
 import torch
@@ -25,7 +27,7 @@ import torchvision
 from torchvision import transforms
 from utils_arch import VGG, Pyramid2D
 from utils_loss import GramMatrix, GramMSELoss
-from utils_plot import save2pdf_gray
+from utils_plot import save2pdf_gray, save2mat_gray
 
 import argparse
 from urllib.parse import urlencode
@@ -34,19 +36,25 @@ from utils import hash_str2int2, mkdir
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-data', '--dataname', type = str, default = 'tur2a')
-parser.add_argument('-N', '--img_size', type = int, default = 256)
-parser.add_argument('-ks', '--im_id', type = int, default = 0)
+parser.add_argument('-N', '--ori_size', type = int, default = 256)
+parser.add_argument('-Ns', '--syn_size', type = int, default = 512)
+parser.add_argument('-layers','--vgg_layers',type=int, default = 5)
 parser.add_argument('-its', '--max_iter', type = int, default = 10000)
 parser.add_argument('-bs','--batch_size',type=int, default = 10)
 parser.add_argument('-lr','--learning_rate',type=float, default = 0.1)
+
+parser.add_argument('-ks', '--im_id', type = int, default = 0)
 parser.add_argument('-factr','--factr', type=float, default=10)
+parser.add_argument('-rand','--use_rand',type=int, default = 1)
 parser.add_argument('-spite','--save_per_iters', type=int, default=100)
 parser.add_argument('-runid','--run_id', type=int, default=1)
 parser.add_argument('-gpu','--gpu', action='store_true')
 args = parser.parse_args()
 
 # training parameters
-img_size = args.img_size
+ori_size = args.ori_size
+syn_size = args.syn_size
+vgg_layers = args.vgg_layers
 batch_size = args.batch_size
 max_iter = args.max_iter
 save_params = args.save_per_iters
@@ -58,17 +66,19 @@ lr_adjust = int(max_iter/10)
 lr_decay_coef = 0.8
 use_GN = 0 # if use gradient normalization
 #min_lr = learning_rate / # 0.001
+use_rand = args.use_rand
 
 # load images
 if args.dataname == 'tur2a':
     im_id = args.im_id # id of input in mat
-    data = sio.loadmat('../turbulence/ns_randn4_train_N' + str(img_size) + '.mat')
+    data = sio.loadmat('../turbulence/ns_randn4_train_N' + str(ori_size) + '.mat')
     n_input_ch = 1
 else:
     assert(false)    
 
 # test folder, backup and results
-params = {'N':args.img_size,'ks':args.im_id, 'lr':args.learning_rate,'its':args.max_iter,\
+params = {'N':ori_size,'Ns':syn_size,'ks':args.im_id,'rand':use_rand,\
+          'lr':args.learning_rate,'its':args.max_iter,'vggl':args.vgg_layers,\
           'bs':args.batch_size,'factr':args.factr,'runid':args.run_id,\
           'spite':args.save_per_iters,'gpu':args.gpu}
 outdir = './ckpt/' + args.dataname + '_g2d_gray'
@@ -96,7 +106,7 @@ print('prep_std',prep_std)
 def prep(x):
     # x is in torch (1,h,w)
     # xc in in torch (3,h,w)    
-#     xc = torch.cat((x,x,x),dim=0) # OR 
+    img_size = x.shape[-1]
     xc = x.expand(3,img_size,img_size)
     xc = xc / prep_std
     xc = xc * 255.0
@@ -119,7 +129,7 @@ if gpu == True:
 
 # get descriptor network
 # VGG model
-vgg = VGG(pool='avg', pad=1)
+vgg = VGG(pool='avg', pad=1, vgg_layers=vgg_layers)
 noramlized_model = torch.load('../vgg_color_caffe/Models/vgg_normalised.caffemodel.pt')
 # fix size of bias
 for key,value in noramlized_model.items():
@@ -133,7 +143,17 @@ if gpu == True:
     vgg.cuda()    
 
 # define layers, loss functions, weights and compute optimization target
-loss_layers = ['p4', 'p3', 'p2', 'p1', 'r11']
+if vgg_layers == 5:
+    loss_layers = ['p4', 'p3', 'p2', 'p1', 'r11']
+elif vgg_layers == 4:
+    loss_layers = ['p3', 'p2', 'p1', 'r11']
+elif vgg_layers == 3:
+    loss_layers = ['p2', 'p1', 'r11']
+elif vgg_layers == 2:
+    loss_layers = ['p1', 'r11']
+else:
+    assert(false)
+    
 w = [factr]* len(loss_layers)
 loss_fns = [GramMSELoss()] * len(loss_layers)
 if gpu == True:
@@ -149,17 +169,32 @@ print('---> lr init  to '+str(optimizer.param_groups[0]['lr']))
 
 loss_history = numpy.zeros(max_iter)
 #run training
-
+sz = [syn_size/1,syn_size/2,syn_size/4,syn_size/8,syn_size/16,syn_size/32]
+noise_fake = []
+for i in range(batch_size):
+    if use_rand == 1:
+        zk = [torch.rand(batch_size,n_input_ch,int(szk),int(szk)) for szk in sz]
+    else:
+        zk = [torch.randn(batch_size,n_input_ch,int(szk),int(szk)) for szk in sz]
+    if gpu:
+        zk_gpu = [z.cuda() for z in zk]
+        noise_fake = zk_gpu
+    else:
+        noise_fake = zk        
+        
+pbar = tqdm(total = max_iter)        
 for n_iter in range(max_iter):
     optimizer.zero_grad()
-    # element by element to allow the use of large training sizes
-    for i in range(batch_size):
-        sz = [img_size/1,img_size/2,img_size/4,img_size/8,img_size/16,img_size/32]
-        zk = [torch.rand(1,n_input_ch,int(szk),int(szk)) for szk in sz]
-        if gpu:
-            z_samples = [Variable(z.cuda()) for z in zk ]
+    # resample Z
+    for z in noise_fake:
+        if use_rand == 1:
+            z.uniform_() # resample z
         else:
-            z_samples = [Variable(z) for z in zk ]
+            z.normal_() # resample z
+            
+    # element by element to allow the use of large training sizes
+    for i in range(batch_size):        
+        z_samples = [noise[i:i+1,:,:,:] for noise in noise_fake]
         batch_sample = gen(z_samples) # (1,1,h,w)
         sample = batch_sample[0,:,:,:] # (1,h,w)
         xc = prep(sample).unsqueeze(0) # (1,h,w) to (1,3,h,w)        
@@ -172,18 +207,24 @@ for n_iter in range(max_iter):
         single_loss = (1/(batch_size))*sum(losses)
         single_loss.backward() # (retain_graph=False)
         loss_history[n_iter] = loss_history[n_iter] + single_loss.item()
-        del out, losses, single_loss, batch_sample, z_samples, zk
+        del out, losses, single_loss, batch_sample, z_samples
     
     if n_iter%save_params == (save_params-1):
         texture_synthesis = sample.detach() # .clone()
         texture_synthesis = texture_synthesis.cpu().squeeze() # (h,w)
-        syn_pdf_name = outdir + '/training_' + str(n_iter+1)
+        #syn_pdf_name = outdir + '/training_' + str(n_iter+1)
+        syn_pdf_name = outdir + '/trained_sample'
         syn_im = texture_synthesis.numpy() # (h,w)
         save2pdf_gray(syn_pdf_name,syn_im,vmin=vmin,vmax=vmax)
-
+        texture_synthesis_imgs = np.zeros((syn_size,syn_size,1))
+        texture_synthesis_imgs[:,:,0] = syn_im
+        save2mat_gray(syn_pdf_name,texture_synthesis_imgs)
+        
     del sample
 
-    print('Iteration: %d, loss: %f'%(n_iter, loss_history[n_iter]))
+    # print('Iteration: %d, loss: %f'%(n_iter, loss_history[n_iter]))
+    pbar.update(1)
+    pbar.set_description("loss %g" %  loss_history[n_iter])
 
     optimizer.step()
     #if optimizer.param_groups[0]['lr'] > min_lr:
