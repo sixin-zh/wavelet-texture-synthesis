@@ -95,7 +95,7 @@ dataset = TurbulenceDataset(opt.texturePath,transformTex,opt.textureMinmax)
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize,
                                          shuffle=True, num_workers=int(opt.workers))
 
-N=0
+#N=0
 ngf = int(opt.ngf)
 ndf = int(opt.ndf)
 desc="fc"+str(opt.fContent)+"_ngf"+str(ngf)+\

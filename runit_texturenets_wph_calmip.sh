@@ -1,7 +1,7 @@
 #!/bin/sh
 
-#SBATCH --output=calmip-mgan-sn-%j.out
-#SBATCH --error=calmip-mgan-sn-%j.err
+#SBATCH --output=calmip-tnets-%j.out
+#SBATCH --error=calmip-tnets-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
