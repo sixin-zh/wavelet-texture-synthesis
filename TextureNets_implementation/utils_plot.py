@@ -13,7 +13,9 @@ def plot2pdf(img,pdfname,cmin=-0.5,cmax=0.5,cmap0='gray',asp='equal'):
     # img: numpy (h,w,3) or (h,w)
     fig = plt.figure()
     sizes = img.shape
-    fig.set_size_inches(1. * sizes[0] / sizes[1], 1, forward = False)
+    dpi = 300
+    #fig.set_size_inches(1. * sizes[0] / sizes[1], 1, forward = False)
+    fig.set_size_inches(sizes[0] / dpi, sizes[1] / dpi, forward = False)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)

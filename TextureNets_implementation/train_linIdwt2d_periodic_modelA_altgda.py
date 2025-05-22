@@ -127,10 +127,10 @@ else:
     netG = torch.load(loaddir + '/netG_iter_last.pt')
 
 # build discriminator networ
-if loaddir is None:
-    netD = DiscriminatorModelA(M,N,J,L,delta_n,subm,stdn,factr,gpu)
-else:
-    netD = torch.load(loaddir + '/netD_iter_last.pt')
+#if loaddir is None:
+netD = DiscriminatorModelA(M,N,J,L,delta_n,subm,stdn,factr,gpu)
+#else:
+    #netD = torch.load(loaddir + '/netD_iter_last.pt')
 
 if gpu == True:
     netG.cuda()
@@ -147,7 +147,7 @@ if gpu:
     noise_fake = noise_fake.cuda()
     
 def save_states():
-    torch.save(netD, outdir + '/netD_iter_last.pt')
+    # .save(netD, outdir + '/netD_iter_last.pt')
     torch.save(netG, outdir + '/netG_iter_last.pt')
     # plot the original sample
     texture_original = im_ori.detach().cpu().squeeze() # torch (h,w)

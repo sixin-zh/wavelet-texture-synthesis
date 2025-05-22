@@ -62,8 +62,8 @@ learning_rate = args.learning_rate
 factr = args.factr # for vgg loss weight
 gpu = args.gpu
 # default
-lr_adjust = int(max_iter/10)
-lr_decay_coef = 0.8
+#lr_adjust = int(max_iter/10)
+#lr_decay_coef = 0.8
 use_GN = 0 # if use gradient normalization
 #min_lr = learning_rate / # 0.001
 use_rand = args.use_rand
@@ -228,10 +228,10 @@ for n_iter in range(max_iter):
 
     optimizer.step()
     #if optimizer.param_groups[0]['lr'] > min_lr:
-    if n_iter%lr_adjust == (lr_adjust-1):
-        optimizer.param_groups[0]['lr'] \
-        = lr_decay_coef * optimizer.param_groups[0]['lr']
-        print('---> lr adjusted to '+str(optimizer.param_groups[0]['lr']))
+#     if n_iter%lr_adjust == (lr_adjust-1):
+#         optimizer.param_groups[0]['lr'] \
+#         = lr_decay_coef * optimizer.param_groups[0]['lr']
+#         print('---> lr adjusted to '+str(optimizer.param_groups[0]['lr']))
 
 # save final model and training history
 torch.save(gen,outdir +'/trained_model.pt')
