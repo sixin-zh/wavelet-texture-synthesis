@@ -70,7 +70,7 @@ params = {'nDep':opt.nDep, 'nDepD':opt.nDepD,'ngf':opt.ngf,\
           'zLoc':opt.zLoc,'zGL':opt.zGL,'ndf':opt.ndf,\
           'bs':opt.batchSize,'ims':opt.imageSize,\
           'lrD':opt.eta_D,'lrG':opt.eta_G,'crits':opt.critic_iters,\
-          'beta1':opt.beta1,'epoch':opt.niter,\
+          'beta1':opt.beta1,'epoch':opt.niter,'la':opt.LAMBDA,\
           'runid':opt.runid}
 outdir = './ckpt/' + opt.texturePath + '_wgan_gp'
 outdir = outdir + '/' + urlencode(params)
