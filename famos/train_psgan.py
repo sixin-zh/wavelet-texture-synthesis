@@ -12,7 +12,7 @@ import torch.utils.data
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from network import weights_init,Discriminator,calc_gradient_penalty,NetG
-from utils import setNoise
+from utils import setNoise, set_default_args
 from utils_turb import TurbulenceDataset
 
 from urllib.parse import urlencode
@@ -21,40 +21,32 @@ import tflib.plot
 
 import argparse
 
-textureSize = 256
+parser = argparse.ArgumentParser()
+parser.add_argument('-data', '--dataname', type = str, default = 'tur2a')
+parser.add_argument('-N', '--textureSize', type = int, default = 256) # load input image size
+parser.add_argument('-Ns', '--imageSize', type = int, default = 160) # extract part of input image
+parser.add_argument('-its', '--niter', type = int, default = 100)
+parser.add_argument('-beta1','--beta1', type=float, default = 0.5)
+parser.add_argument('-bs','--batchSize',type=int, default = 16)
+parser.add_argument('-gd','--nDep',type=int, default = 5) # 'depth of Unet Generator'
+parser.add_argument('-gnc','--ngf',type=int, default = 120) # 'number of channels of generator (at largest spatial resolution)
+parser.add_argument('-gzloc','--zLoc',type=int, default = 10) # 'noise channels, sampled on each spatial position'
+parser.add_argument('-gzgl','--zGL',type=int, default = 20) # 'noise channels, identical on every spatial position'
+parser.add_argument('-dd','--nDepD',type=int, default = 5) # 'depth of DiscrimblendMoinator'
+parser.add_argument('-dnc','--ndf',type=int, default = 120) # 'number of channels of discriminator (at largest spatial resolution)'
+parser.add_argument('-minmax','--textureMinmax', type=float, default=4.5)
+parser.add_argument('-runid','--runid', type=int, default=1)
+parser.add_argument('-lr','--lr', type=float, default=0.0002)
+parser.add_argument('-gpu','--gpu', action='store_true')
 
-class OPTION(argparse.Namespace):
-    nDep = 5 # 'depth of Unet Generator'
-    nDepD = 5 # 'depth of DiscrimblendMoinator'
-    ngf = 120 # 'number of channels of generator (at largest spatial resolution)
-    zLoc = 10 # 'noise channels, sampled on each spatial position'
-    zGL = 20 # 'noise channels, identical on every spatial position'
-    ndf = 120 # 'number of channels of discriminator (at largest spatial resolution)'
-    batchSize = 8 # 16
-    imageSize = 256 # 160
-    lr = 0.0002
-    beta1 = 0.5
-    niter = 100
-    runid = 1
+args = parser.parse_args()
 
-    texturePath = 'samples/turbulence/ns_randn4_train_N' + str(textureSize)
-    textureMinmax = 4.5
-    N = 30 # 'count of memory templates'
-    fContent = 1.0 # 'weight of content reconstruction loss'
-    fContentM = 1.0 # 'weight of I_M content reconstruction loss'
-    zPeriodic = 0 # 'periodic spatial waves'
-    nBlocks = 0 # 'additional res blocks for complexity in the unet'
-    contentPath = ''
-    multiScale= False
-    firstNoise = False # 'stochastic noise at bottleneck or input of Unet'
-    mirror = False # 'augment style image distribution for mirroring'
-    manualSeed = None
-    workers = 0 #0 means a single main process for data loader
-    LS = False
-    WGAN = False
-    outputFolder = '.'
-
-opt = OPTION()
+if args.dataname == 'tur2a':
+    args.texturePath = 'samples/turbulence/ns_randn4_train_N' + str(args.textureSize)
+else:
+    assert(False)
+ 
+opt = set_default_args(args)
 
 if opt.manualSeed is None:
     opt.manualSeed = random.randint(1, 10000)
@@ -64,7 +56,8 @@ torch.manual_seed(opt.manualSeed)
 
 nDep = opt.nDep
 
-#noise added to the deterministic content mosaic modules -- in some cases it makes a difference, other times can be ignored
+#noise added to the deterministic content mosaic modules 
+# -- in some cases it makes a difference, other times can be ignored
 bfirstNoise=opt.firstNoise
 nz=opt.zGL+opt.zLoc+opt.zPeriodic
 bMirror=opt.mirror##make for a richer distribution, 4x times more data
@@ -73,7 +66,8 @@ opt.fContentM *= opt.fContent
 params = {'nDep':opt.nDep, 'nDepD':opt.nDepD,'ngf':opt.ngf,\
           'zLoc':opt.zLoc,'zGL':opt.zGL,'ndf':opt.ndf,\
           'bs':opt.batchSize,'ims':opt.imageSize,\
-          'lr':opt.lr,'beta1':opt.beta1,'niter':opt.niter,'runid':opt.runid}
+          'lr':opt.lr,'beta1':opt.beta1,'niter':opt.niter,\
+          'runid':opt.runid}
 outdir = './ckpt/' + opt.texturePath
 outdir = outdir + '/' + urlencode(params)
 
@@ -85,7 +79,7 @@ print ("outputFolderolder ", outdir)
 
 criterion = nn.BCELoss()
 
-if opt.imageSize < textureSize: # smaller than the size of input texture size
+if opt.imageSize < opt.textureSize: # smaller than the size of input texture size
     canonicT=[transforms.RandomCrop(opt.imageSize)]
     transforms.Compose(canonicT)
 else:
@@ -106,7 +100,7 @@ netD = Discriminator(ndf, opt.nDepD, opt, ncIn = 1,\
 
 netG = NetG(ngf, nDep, nz, opt, nc=1)
 
-use_cuda = torch.cuda.is_available()
+use_cuda = args.gpu and torch.cuda.is_available()
 #print(use_cuda)
 device = torch.device("cuda:0" if use_cuda else "cpu")
 print ("device",device)

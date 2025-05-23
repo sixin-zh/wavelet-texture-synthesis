@@ -1,25 +1,36 @@
 import torch
 import torch.nn as nn
+from torch import autograd
+
 # from config import bfirstNoise, opt
 from torchvision import models
 from prepareTemplates import getTemplateMixImage
 
 norma = nn.BatchNorm2d
 
-def calc_gradient_penalty(netD, real_data, fake_data):
-    from torch import autograd
-    LAMBDA=1
+def calc_gradient_penalty(netD, real_data, fake_data, opt, use_cuda=True):
+    la = opt.LAMBDA
     BATCH_SIZE=fake_data.shape[0]
-    alpha = torch.rand(BATCH_SIZE).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-    device=real_data.get_device()
-    alpha = alpha.to(device)
+    if not use_cuda:
+        alpha = torch.rand((BATCH_SIZE,1,1,1))
+    else:
+        dev = real_data.get_device()
+        alpha = torch.rand((BATCH_SIZE,1,1,1),device=dev)
+#     alpha = torch.rand(BATCH_SIZE).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+#     device=real_data.get_device()
+#     alpha = alpha.to(device)
     interpolates = alpha * real_data + ((1 - alpha) * fake_data)
-    disc_interpolates = netD(interpolates)
+    interpolates.requires_grad = True
+    disc_interpolates = netD(interpolates,opt)
+    if not use_cuda:
+        ones = torch.ones(disc_interpolates.size())
+    else:
+        ones = torch.ones(disc_interpolates.size(),device=dev)
     gradients = autograd.grad(outputs=disc_interpolates, inputs=interpolates,
-                              grad_outputs=torch.ones(disc_interpolates.size()).to(device),
-                              create_graph=True, retain_graph=True, only_inputs=True)[0]
-    gradients = gradients.view(gradients.size(0), -1)
-    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * LAMBDA
+                              grad_outputs=ones,
+                              create_graph=True, retain_graph=True, only_inputs=True)[0]    
+    gradients = gradients.view(gradients.size(0), -1) # (bs,?)
+    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * la
     return gradient_penalty
 
 # custom weights initialization called on netG and netD
