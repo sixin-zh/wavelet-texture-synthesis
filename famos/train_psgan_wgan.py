@@ -131,8 +131,14 @@ paramsG = [param for net in Gnets for param in list(net.parameters())]
 optimizerD = optim.Adam(paramsD, lr=opt.eta_D, betas=(opt.beta1, 0.999))
 optimizerG = optim.Adam(paramsG, lr=opt.eta_G, betas=(opt.beta1, 0.999))
 
+def save_states(epoch=-1):
+    torch.save(netD, outdir + '/netD_iter_last.pt')
+    torch.save(netG, outdir + '/netG_iter_last.pt')
+    if epoch >= 0:
+	torch.save(paramsG, outdir+'/netG_params_epoch' + str(epoch) + '.pt')
+
+start_time = time.time()
 for epoch in range(opt.niter):
-    start_time = time.time()
     for i in range(dataset.trainSize):
         # update D network
         for iter_d in range(opt.critic_iters):
@@ -185,12 +191,10 @@ for epoch in range(opt.niter):
             
         lib.plot.tick()
     
+    save_states(epoch) # save last state at the end of each epoch
+
 lib.plot.dump(outdir)
 
-def save_states():
-    torch.save(netD, outdir + '/netD_iter_last.pt')
-    torch.save(netG, outdir + '/netG_iter_last.pt')
-
-save_states()
+#save_states()
 print('saved outdir=',outdir)
 print('DONE')
