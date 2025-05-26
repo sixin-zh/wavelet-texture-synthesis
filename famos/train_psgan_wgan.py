@@ -135,7 +135,7 @@ def save_states(epoch=-1):
     torch.save(netD, outdir + '/netD_iter_last.pt')
     torch.save(netG, outdir + '/netG_iter_last.pt')
     if epoch >= 0:
-	torch.save(paramsG, outdir+'/netG_params_epoch' + str(epoch) + '.pt')
+        torch.save(paramsG, outdir+'/netG_params_epoch'+str(epoch)+'.pt')
 
 start_time = time.time()
 for epoch in range(opt.niter):
@@ -163,8 +163,9 @@ for epoch in range(opt.niter):
             errD.backward()
             optimizerD.step()
 
+        lib.plot.plot(outdir + '/gradp', gradient_penalty.item())
         lib.plot.plot(outdir + '/dloss', errD.item())
-        
+
         # update G
         for net in Gnets:
             net.zero_grad()
