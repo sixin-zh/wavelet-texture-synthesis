@@ -14,6 +14,7 @@ import torchvision.utils as vutils
 from network import weights_init,Discriminator,calc_gradient_penalty,NetG
 from utils import setNoise
 from utils_turb import TurbulenceDataset, set_default_args
+from utils_turb import hash_str2int2, mkdir
 
 from urllib.parse import urlencode
 import tflib as lib
@@ -40,6 +41,7 @@ parser.add_argument('-dd','--nDepD',type=int, default = 5) # 'depth of Discrimbl
 parser.add_argument('-dnc','--ndf',type=int, default = 120) # 'number of channels of discriminator (at largest spatial resolution)'
 parser.add_argument('-minmax','--textureMinmax', type=float, default=4.5)
 parser.add_argument('-runid','--runid', type=int, default=1)
+parser.add_argument('-load','--load_dir', type=str, default=None)
 parser.add_argument('-gpu','--gpu', action='store_true')
 
 args = parser.parse_args()
@@ -71,14 +73,10 @@ params = {'nDep':opt.nDep, 'nDepD':opt.nDepD,'ngf':opt.ngf,\
           'bs':opt.batchSize,'ims':opt.imageSize,\
           'lrD':opt.eta_D,'lrG':opt.eta_G,'crits':opt.critic_iters,\
           'beta1':opt.beta1,'epoch':opt.niter,'la':opt.LAMBDA,\
-          'runid':opt.runid}
+          'runid':opt.runid,'loaddir':hash_str2int2(opt.load_dir)}
 outdir = './ckpt/' + opt.texturePath + '_wgan_gp'
 outdir = outdir + '/' + urlencode(params)
-
-try:
-    os.makedirs(outdir)
-except OSError:
-    pass
+mkdir(outdir)
 print ("outputFolderolder ", outdir)
 
 criterion = nn.BCELoss()
@@ -98,34 +96,42 @@ ndf = int(opt.ndf)
 desc="fc"+str(opt.fContent)+"_ngf"+str(ngf)+\
      "_ndf"+str(ndf)+"_dep"+str(nDep)+"-"+str(opt.nDepD)
 
-netD = Discriminator(ndf, opt.nDepD, opt, ncIn = 1,\
-                     bSigm=not opt.LS and not opt.WGAN)
-
-netG = NetG(ngf, nDep, nz, opt, nc=1)
-
+# build G and D
 use_cuda = args.gpu and torch.cuda.is_available()
 #print(use_cuda)
 device = torch.device("cuda:0" if use_cuda else "cpu")
 print ("device",device)
 
-Gnets=[netG]
+if opt.load_dir is None:
+    netD = Discriminator(ndf, opt.nDepD, opt, ncIn = 1,\
+                     bSigm=not opt.LS and not opt.WGAN)
 
-for net in [netD] + Gnets:
-    try:
-        net.apply(weights_init)
-    except Exception as e:
-        print (e,"weightinit")
-    pass
-    if use_cuda:
-        net=net.to(device)
-    #print(net)
+    netG = NetG(ngf, nDep, nz, opt, nc=1)
+    Gnets=[netG]
 
+    for net in [netD] + Gnets:
+        try:
+            net.apply(weights_init)
+        except Exception as e:
+            print (e,"weightinit")
+        pass
+        if use_cuda:
+            net=net.to(device)
+else:
+    print('load from',opt.load_dir)
+    netG = torch.load(opt.load_dir + '/netG_iter_last.pt')
+    netD = torch.load(opt.load_dir + '/netD_iter_last.pt')
+    Gnets=[netG]
+    
+
+# noise Z of G
 NZ = opt.imageSize//2**nDep
 noise = torch.FloatTensor(opt.batchSize, nz, NZ,NZ)
 # fixnoise = torch.FloatTensor(opt.batchSize, nz, NZ*4,NZ*4)
 if use_cuda:
     noise=noise.to(device)
 
+# optim
 paramsD = netD.parameters()
 paramsG = [param for net in Gnets for param in list(net.parameters())]
 optimizerD = optim.Adam(paramsD, lr=opt.eta_D, betas=(opt.beta1, 0.999))
@@ -137,6 +143,7 @@ def save_states(epoch=-1):
     if epoch >= 0:
         torch.save(paramsG, outdir+'/netG_params_epoch'+str(epoch)+'.pt')
 
+# train
 start_time = time.time()
 for epoch in range(opt.niter):
     for i in range(dataset.trainSize):

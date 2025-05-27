@@ -7,6 +7,19 @@ import torch
 from torch.utils.data import Dataset
 import torch.nn as nn
 
+import hashlib
+def hash_str2int2(s):
+    if s is not None:
+        s = s.encode('UTF-8')
+        return int(hashlib.sha1(s).hexdigest(), 16) % (100)
+    return 0
+
+def mkdir(outdir):
+    try:
+        os.mkdir(outdir)
+    except:
+        print(outdir, 'already exists')
+
 
 def set_default_args(opt):
     args = argparse.Namespace(**vars(opt))
