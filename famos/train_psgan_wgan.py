@@ -14,7 +14,7 @@ import torchvision.utils as vutils
 from network import weights_init,Discriminator,calc_gradient_penalty,NetG
 from utils import setNoise
 from utils_turb import TurbulenceDataset, set_default_args
-from utils_turb import hash_str2int2, mkdir
+from utils_turb import hash_str2int2, mkdir, save_obj
 
 from urllib.parse import urlencode
 import tflib as lib
@@ -59,14 +59,16 @@ print("Random Seed: ", opt.manualSeed)
 random.seed(opt.manualSeed)
 torch.manual_seed(opt.manualSeed)
 
-nDep = opt.nDep
 
 #noise added to the deterministic content mosaic modules 
 # -- in some cases it makes a difference, other times can be ignored
+nDep = opt.nDep
 bfirstNoise=opt.firstNoise
 nz=opt.zGL+opt.zLoc+opt.zPeriodic
 bMirror=opt.mirror##make for a richer distribution, 4x times more data
 opt.fContentM *= opt.fContent
+opt.WGAN = True
+opt.LS = False
 
 params = {'nDep':opt.nDep, 'nDepD':opt.nDepD,'ngf':opt.ngf,\
           'zLoc':opt.zLoc,'zGL':opt.zGL,'ndf':opt.ndf,\
@@ -78,8 +80,6 @@ outdir = './ckpt/' + opt.texturePath + '_wgan_gp'
 outdir = outdir + '/' + urlencode(params)
 mkdir(outdir)
 print ("outputFolderolder ", outdir)
-
-criterion = nn.BCELoss()
 
 if opt.imageSize < opt.textureSize: # smaller than the size of input texture size
     canonicT=[transforms.RandomCrop(opt.imageSize)]
@@ -104,11 +104,14 @@ print ("device",device)
 
 if opt.load_dir is None:
     netD = Discriminator(ndf, opt.nDepD, opt, ncIn = 1,\
-                     bSigm=not opt.LS and not opt.WGAN)
+                         bSigm=not opt.LS and not opt.WGAN)
 
     netG = NetG(ngf, nDep, nz, opt, nc=1)
     Gnets=[netG]
-
+    
+    print('netG',netG)
+    print('netD',netD)
+    
     for net in [netD] + Gnets:
         try:
             net.apply(weights_init)
@@ -121,8 +124,7 @@ else:
     print('load from',opt.load_dir)
     netG = torch.load(opt.load_dir + '/netG_iter_last.pt')
     netD = torch.load(opt.load_dir + '/netD_iter_last.pt')
-    Gnets=[netG]
-    
+    Gnets=[netG]    
 
 # noise Z of G
 NZ = opt.imageSize//2**nDep
@@ -137,7 +139,7 @@ paramsG = [param for net in Gnets for param in list(net.parameters())]
 optimizerD = optim.Adam(paramsD, lr=opt.eta_D, betas=(opt.beta1, 0.999))
 optimizerG = optim.Adam(paramsG, lr=opt.eta_G, betas=(opt.beta1, 0.999))
 
-def save_states(epoch=-1):
+def save_states(epoch=-1):    
     torch.save(netD, outdir + '/netD_iter_last.pt')
     torch.save(netG, outdir + '/netG_iter_last.pt')
     if epoch >= 0:
@@ -204,5 +206,6 @@ for epoch in range(opt.niter):
 lib.plot.dump(outdir)
 
 #save_states()
+save_obj(opt,  outdir + '/args_option')
 print('saved outdir=',outdir)
 print('DONE')

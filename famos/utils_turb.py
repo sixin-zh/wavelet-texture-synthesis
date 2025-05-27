@@ -2,6 +2,10 @@ import os
 import numpy as np
 import scipy.io as sio
 import argparse
+try:
+    import cPickle as pickle
+except ImportError:  # python 3.x
+    import pickle
 
 import torch
 from torch.utils.data import Dataset
@@ -20,6 +24,13 @@ def mkdir(outdir):
     except:
         print(outdir, 'already exists')
 
+def save_obj(obj, name ):
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(name ):
+    with open(name + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 def set_default_args(opt):
     args = argparse.Namespace(**vars(opt))
@@ -34,8 +45,6 @@ def set_default_args(opt):
     args.mirror = False # 'augment style image distribution for mirroring'
     args.manualSeed = None
     args.workers = 0 #0 means a single main process for data loader   
-    args.LS = False
-    args.WGAN = False    
     args.outputFolder = '.'
     return args
 
