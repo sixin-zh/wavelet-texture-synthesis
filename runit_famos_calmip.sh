@@ -8,6 +8,7 @@
 #SBATCH --ntasks-per-core=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=20000
+#SBATCH --time=30:00:00
 
 module purge
 module load pytorch/1.7.1
@@ -15,7 +16,11 @@ module load pytorch/1.7.1
 cd ~/wavelet-texture-synthesis/famos/
 
 ########## Mai 27 ##########
-python train_psgan_wgan.py -gpu -lrD 0.0002 -lrG 0.0002 -la 10  -its 25 -runid 2005
+python train_psgan_wgan.py -gpu -lrD 5e-5 -lrG 5e-5 -la 10 -its 25 -runid 2007
+
+#python train_psgan_wgan.py -gpu -lrD 0.0001 -lrG 0.0001 -la 10 -its 25 -runid 2006
+
+#python train_psgan_wgan.py -gpu -lrD 0.0002 -lrG 0.0002 -la 10  -its 25 -runid 2005
 
 #python train_psgan_wgan.py -gpu -lrD 0.0002 -lrG 0.0002 -la 0.1  -its 25 -runid 2004
 
