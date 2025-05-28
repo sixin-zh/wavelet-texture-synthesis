@@ -278,7 +278,7 @@ def get_learnedWN(opt):
 
 ##inplace set noise
 def setNoise(noise,opt):
-    noise=noise.detach()*1.0
+    noise=noise.detach() # *1.0
     noise.uniform_(-1, 1)  # normal_(0, 1)
     if opt.zGL:
         noise[:, :opt.zGL] =\

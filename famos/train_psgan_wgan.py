@@ -197,8 +197,9 @@ for epoch in range(opt.niter):
             lib.plot.plot(outdir + '/time', time.time() - start_time)
             vutils.save_image(text,'%s/real_textures.jpg' % outdir,  normalize=True)
             vutils.save_image(fake,'%s/generated_textures_%03d_%s.jpg' % (outdir, epoch,desc),normalize=True)
-            lib.plot.flush()
-            
+            lib.plot.flush()            
+            start_time = time.time()
+
         lib.plot.tick()
     
     save_states(epoch) # save last state at the end of each epoch
