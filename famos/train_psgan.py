@@ -142,7 +142,6 @@ def save_states(epoch=-1):
     if epoch >= 0:
         torch.save(paramsG, outdir+'/netG_params_epoch'+str(epoch)+'.pt')
 
-vutils.save_image(text,'%s/real_textures.jpg' % outdir,  normalize=True)
 
 start_time = time.time()
 for epoch in range(opt.niter):
@@ -195,8 +194,9 @@ for epoch in range(opt.niter):
         ### RUN INFERENCE AND SAVE LARGE OUTPUT MOSAICS
         if i % 100 == 0:
             lib.plot.plot(outdir + '/time', time.time() - start_time)            
-            vutils.save_image(fake,'%s/generated_textures_%03d_%s.jpg' % (outdir, epoch,desc),normalize=True)            
-            lib.plot.flush()            
+            vutils.save_image(text,'%s/real_textures_%03d.jpg' % (outdir,epoch),normalize=True)
+            vutils.save_image(fake,'%s/generated_textures_%03d_%s.jpg' % (outdir, epoch,desc),normalize=True)
+            lib.plot.flush()
             start_time = time.time()
             
         lib.plot.tick()
