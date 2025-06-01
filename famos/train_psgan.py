@@ -12,8 +12,8 @@ import torch.utils.data
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from network import weights_init,Discriminator,calc_gradient_penalty,NetG
-from utils import setNoise, set_default_args
-from utils_turb import TurbulenceDataset
+from utils import setNoise
+from utils_turb import TurbulenceDataset, set_default_args
 from utils_turb import hash_str2int2, mkdir, save_obj
 
 from urllib.parse import urlencode
@@ -81,7 +81,7 @@ criterion = nn.BCELoss()
 
 if opt.imageSize < opt.textureSize: # smaller than the size of input texture size
     canonicT=[transforms.RandomCrop(opt.imageSize)]
-    transforms.Compose(canonicT)
+    transformTex = transforms.Compose(canonicT)
 else:
     transformTex = None 
 
@@ -135,16 +135,21 @@ fake_label = 0
 optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))#netD.parameters()
 optimizerU = optim.Adam([param for net in Gnets for param in list(net.parameters())], lr=opt.lr, betas=(opt.beta1, 0.999))
 
+# log
 def save_states(epoch=-1):    
     torch.save(netD, outdir + '/netD_iter_last.pt')
     torch.save(netG, outdir + '/netG_iter_last.pt')
     if epoch >= 0:
         torch.save(paramsG, outdir+'/netG_params_epoch'+str(epoch)+'.pt')
 
+vutils.save_image(text,'%s/real_textures.jpg' % outdir,  normalize=True)
+
+start_time = time.time()
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):
-        t0 = time.time()
-        sys.stdout.flush()
+        # t0 = time.time()
+        # sys.stdout.flush()
+        # UPDATE D
         # train with real
         netD.zero_grad()
         text, _ = data
@@ -171,6 +176,7 @@ for epoch in range(opt.niter):
         
         optimizerD.step()
     
+        # UPDATE G
         for net in Gnets:
             net.zero_grad()
         
@@ -189,7 +195,6 @@ for epoch in range(opt.niter):
         ### RUN INFERENCE AND SAVE LARGE OUTPUT MOSAICS
         if i % 100 == 0:
             lib.plot.plot(outdir + '/time', time.time() - start_time)            
-            vutils.save_image(text,'%s/real_textures.jpg' % outdir,  normalize=True)
             vutils.save_image(fake,'%s/generated_textures_%03d_%s.jpg' % (outdir, epoch,desc),normalize=True)            
             lib.plot.flush()            
             start_time = time.time()
