@@ -116,8 +116,7 @@ if opt.load_dir is None:
         try:
             net.apply(weights_init)
         except Exception as e:
-            print (e,"weightinit")
-        pass
+            print (e,"weightinit")        
         if use_cuda:
             net=net.to(device)
 else:
@@ -202,7 +201,8 @@ for epoch in range(opt.niter):
 
         lib.plot.tick()
     
-    save_states(epoch) # save last state at the end of each epoch
+    #save_states(epoch) # save last state at the end of each epoch
+    save_states() # save last state at the end of each epoch
 
 lib.plot.dump(outdir)
 
