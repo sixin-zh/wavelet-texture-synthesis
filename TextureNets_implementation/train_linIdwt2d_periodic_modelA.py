@@ -55,7 +55,7 @@ loaddir = args.load_dir
 # test folder, backup and results
 params = {'J':args.scatJ, 'L':args.scatL,'dn':args.delta_n,'its':args.max_iter,\
           'fs':args.filter_size,'bs':args.batch_size,'factr':args.factr,\
-          'runid':args.run_id,'init':args.init,'gpu':args.gpu,\
+          'runid':args.run_id,'init':args.init,'gpu':args.gpu,'ks':args.im_id,\
           'loaddir':hash_str2int2(loaddir),'wave':args.wavelet}
 outdir = './ckpt/' + args.dataname + '_linIdwt2d_modelA'
 mkdir(outdir)
@@ -96,7 +96,8 @@ else:
 
 # load data
 if args.dataname == 'fbmB7':
-    data = sio.loadmat('../turbulence/demo_fbmB7_N' + str(im_size) + '.mat')
+    #data = sio.loadmat('../turbulence/demo_fbmB7_N' + str(im_size) + '.mat')
+    data = sio.loadmat('../turbulence/fbmB7_train_N' + str(im_size) + '.mat')
 elif args.dataname == 'tur2a':
     data = sio.loadmat('../turbulence/ns_randn4_train_N' + str(im_size) + '.mat')
 else:
@@ -203,10 +204,19 @@ save2mat_gray(syn_mat_name,texture_synthesis_imgs)
 # save final model and training history
 torch.save(gen,outdir + '/trained_gen_model.pt')
 
+# save test samples
+z_batches.normal_()
+x_fake = gen.forward(z_batches).detach().cpu().numpy()
+texture_synthesis_imgs = np.zeros((im_size,im_size,batch_size))
+syn_mat_name = outdir + '/test_samples'
+for i in range(batch_size):
+    texture_synthesis_imgs[:,:,i] = x_fake[i,0,:,:]
+save2mat_gray(syn_mat_name,texture_synthesis_imgs)
+
 # plot the original sample
-texture_original = im_ori.detach().cpu().squeeze() # torch (h,w)
-ori_pdf_name = outdir + '/original'
-save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
+#texture_original = im_ori.detach().cpu().squeeze() # torch (h,w)
+#ori_pdf_name = outdir + '/original'
+#save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
 
 copyfile('./train_linIdwt2d_periodic_modelA.py', outdir + '/code.txt')
 

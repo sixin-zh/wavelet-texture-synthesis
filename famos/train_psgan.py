@@ -142,7 +142,6 @@ def save_states(epoch=-1):
     if epoch >= 0:
         torch.save(paramsG, outdir+'/netG_params_epoch'+str(epoch)+'.pt')
 
-
 start_time = time.time()
 for epoch in range(opt.niter):
     for i, data in enumerate(dataloader, 0):

@@ -5,8 +5,22 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 
+##### june 7 ######
+for ks in `seq 0 9`;
+do
+#    python train_linIdwt2d_periodic_modelA.py -gpu -bs 32 -factr 10 -J 4 -L 4 -fs 32 -wave db7 -data fbmB7 -ks $ks -runid 3
+    python train_linIdwt2d_periodic_modelA.py -gpu -bs 32 -factr 10 -J 4 -L 4 -dn 0 -fs 32 -wave db7 -data fbmB7 -ks $ks -runid 3
+done
+
+#python train_linIdwt2d_periodic_modelA.py -gpu -bs 64 -factr 10 -J 4 -L 4 -fs 32 -wave db7 -data fbmB7 -ks 0 -runid 2
+
+#python train_linIdwt2d_periodic_modelA.py -gpu -bs 32 -factr 10 -J 4 -L 4 -fs 32 -wave db7 -data fbmB7 -ks 0 -runid 2
+
+#python train_linIdwt2d_periodic_modelA.py -gpu -bs 16 -factr 10 -fs 64 -wave db7 -data fbmB7 -ks 0 -runid 2
+
+
 ##### mai 14 ######
-python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 1e-3 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 1
+# python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 1e-3 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 1
 
 ##### mai 13 ######
 # python train_g2d_periodic_modelC_altgda.py -gpu -data tur2a -etag 1e-5 -etad 0.01 -tau 20 -its 5000 -ch 16 -rand 0  -init normalstdbarx  -runid 2

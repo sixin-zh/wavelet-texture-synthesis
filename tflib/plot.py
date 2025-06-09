@@ -19,9 +19,8 @@ def tick():
 def plot(name, value):
 	_since_last_flush[name][_iter[0]] = value
 
-def flush():
+def flush(outdir=None):
 	prints = []
-
 	for name, vals in list(_since_last_flush.items()):
 		#prints.append("{}\t{}".format(name, np.mean(list(vals.values()))))
 		prints.append("{}\t{:.8g}".format(name[-5:], np.mean(list(vals.values()))))
@@ -34,7 +33,11 @@ def flush():
 		plt.plot(x_vals, y_vals)
 		plt.xlabel('iteration')
 		plt.ylabel(name[-5:])
-		plt.savefig(name.replace(' ', '_')+'.png')
+
+		if outdir:
+        		plt.savefig(outdir + '/' + name.replace(' ', '_')+'.png')
+		else:
+			plt.savefig(name.replace(' ', '_')+'.png')
 
 	print(("iter {}\t{}".format(_iter[0], "\t".join(prints))))
 

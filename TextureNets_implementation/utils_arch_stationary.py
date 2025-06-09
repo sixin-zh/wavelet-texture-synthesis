@@ -1,10 +1,12 @@
-# implement stationary Gaussian generator
-# using one linear conv2d layer
+# implement zero-mean stationary Gaussian generator
+# using one linear conv2d layer or 2d wavelet transform
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_wavelets import DWTForward, DWTInverse 
+
+norma = nn.BatchNorm2d
 
 ##################
 # MAIN arch
@@ -98,3 +100,46 @@ class LinIdwt2D(nn.Module):
         # perform IDWT on aJ and dj
         x = self.ifm((aJ,dj))
         return x
+
+
+##################
+# Darch
+##################
+class DiscriminatorInv_CirPoolSigm(nn.Module):
+    # circular conv + pooling layer to reach invariant features
+    # @param ncIn is input channels
+    # @param ndf is channels of first layer, doubled up after every conv. layer with stride
+    # @param nDep is depth
+    # @param bSigm is final nonlinearity, off for some losses
+    def __init__(self, ndf, nDep, opt, ncIn=3):
+        super(DiscriminatorInv_CirPoolSigm, self).__init__()
+        layers = []
+        of = ncIn
+        for i in range(nDep):
+            if i==nDep-1:
+                nf=1
+                layers+=[nn.Conv2d(of, nf, 1, 1, 0, padding_mode='circular')]
+            else:
+                nf = ndf*2**i
+                layers+=[nn.Conv2d(of, nf, 5, 2, 2, padding_mode='circular')]
+                
+            if i !=0 and i !=nDep-1:
+                layers+=[norma(nf )]
+
+            if i < nDep -1:
+                layers+=[nn.ReLU()]
+
+            of = nf
+
+        self.main = nn.Sequential(*layers)
+        self.sigm = nn.Sigmoid()
+
+    def forward(self, input):
+        # input: (bs,.,.,.)
+        # output: (bs,1)
+        cnn_output = self.main(input) # (bs,1,w,h)
+        # perform global ave pooling
+        inv_output = torch.mean(cnn_output,(2,3)) # (bs,1)
+        #print('inv output',inv_output.shape)
+        output = self.sigm(inv_output)
+        return output
