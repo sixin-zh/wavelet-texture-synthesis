@@ -17,7 +17,7 @@ import scipy.io as sio
 # import matplotlib.ppyplot as plt
 import tflib as lib
 import tflib.plot
-from tqdm import tqdm
+#from tqdm import tqdm
 
 import argparse
 from urllib.parse import urlencode
@@ -179,7 +179,7 @@ Features_real = netD.compute_features(X_real)
 #ori_pdf_name = outdir + '/original'
 #save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
 
-pbar = tqdm(total = max_iter)
+#pbar = tqdm(total = max_iter)
 for n_iter in range(max_iter):
     # TO update D first, then G
     for iter_d in range(CRITIC_ITERS):
@@ -212,8 +212,8 @@ for n_iter in range(max_iter):
     else:
         lib.plot.plot('gloss', g_loss)
         lib.plot.tick()
-        pbar.update(1)
-        pbar.set_description("loss %s" % g_loss)
+        #pbar.update(1)
+        #pbar.set_description("loss %s" % g_loss)
         
     # Write logs and save samples    
     if n_iter%save_params == (save_params-1):
