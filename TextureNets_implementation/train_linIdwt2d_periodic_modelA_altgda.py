@@ -175,9 +175,9 @@ X_real = im_ori
 Features_real = netD.compute_features(X_real)
 
 # plot the original sample
-texture_original = im_ori.detach().cpu().squeeze() # torch (h,w)
-ori_pdf_name = outdir + '/original'
-save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
+#texture_original = im_ori.detach().cpu().squeeze() # torch (h,w)
+#ori_pdf_name = outdir + '/original'
+#save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
 
 pbar = tqdm(total = max_iter)
 for n_iter in range(max_iter):
@@ -217,14 +217,14 @@ for n_iter in range(max_iter):
         
     # Write logs and save samples    
     if n_iter%save_params == (save_params-1):
-        # tflib plot 3:4        
+        # tflib plot 3:4
         lib.plot.flush(outdir)
-        # plot last sample in z_batches        
+        # plot last sample in z_batches
         data_eval = netG(noise_eval)
         x_eval = data_eval.detach().cpu().numpy()
-        texture_synthesis = x_eval[0,0,:,:] # (h,w)
+        #texture_synthesis = x_eval[0,0,:,:] # (h,w)
         syn_pdf_name = outdir + '/eval_samples'
-        save2pdf_gray(syn_pdf_name,texture_synthesis,vmin=vmin,vmax=vmax)
+        # save2pdf_gray(syn_pdf_name,texture_synthesis,vmin=vmin,vmax=vmax)
         texture_synthesis_imgs = np.zeros((im_size,im_size,eval_batch_size))
         for i in range(eval_batch_size):
             texture_synthesis_imgs[:,:,i] = x_eval[i,0,:,:]
