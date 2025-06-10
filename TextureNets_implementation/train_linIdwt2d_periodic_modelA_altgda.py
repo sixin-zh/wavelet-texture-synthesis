@@ -100,6 +100,10 @@ if init == 'normalstdbarx':
     print('init with normalstdbarx')
     subm = 1
     stdn = 1
+elif init == 'normalstdonly':
+    print('init with normalstdonly')
+    subm = 0
+    stdn = 1
 else:
     print('init normal')
     subm = 0
@@ -113,6 +117,7 @@ elif args.dataname == 'tur2a':
     data = sio.loadmat('../turbulence/ns_randn4_train_N' + str(im_size) + '.mat')
 else:
     assert(false)
+    
 im = data['imgs'][:,:,im_id]
 vmin = np.quantile(im,0.01) # for plot
 vmax = np.quantile(im,0.99)

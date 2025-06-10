@@ -6,7 +6,7 @@ export KYMATIO_BACKEND=skcuda
 cd TextureNets_implementation
 
 ##### june 10 ######
-python train_linIdwt2d_periodic_modelA_altgda.py -gpu -wave db7 -data fbmB7 -etag 0.1 -etad 0.1 -tau 5 -bs 16 -ebs 100 -its 5000
+python train_linIdwt2d_periodic_modelA_altgda.py -gpu -init normalstdonly -wave db7 -data fbmB7 -etag 0.1 -etad 0.1 -tau 5 -bs 16 -ebs 100 -its 5000 -spite 100
 
 
 ##### june 7 ######
