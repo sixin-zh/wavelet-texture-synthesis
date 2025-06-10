@@ -5,12 +5,16 @@ export KYMATIO_BACKEND=skcuda
 
 cd TextureNets_implementation
 
+##### june 10 ######
+python train_linIdwt2d_periodic_modelA_altgda.py -gpu -wave db7 -data fbmB7 -etag 0.1 -etad 0.1 -tau 5 -bs 16 -ebs 100 -its 5000
+
+
 ##### june 7 ######
-for ks in `seq 0 9`;
-do
+#for ks in `seq 0 9`;
+#do
 #    python train_linIdwt2d_periodic_modelA.py -gpu -bs 32 -factr 10 -J 4 -L 4 -fs 32 -wave db7 -data fbmB7 -ks $ks -runid 3
-    python train_linIdwt2d_periodic_modelA.py -gpu -bs 32 -factr 10 -J 4 -L 4 -dn 0 -fs 32 -wave db7 -data fbmB7 -ks $ks -runid 3
-done
+#    python train_linIdwt2d_periodic_modelA.py -gpu -bs 32 -factr 10 -J 4 -L 4 -dn 0 -fs 32 -wave db7 -data fbmB7 -ks $ks -runid 3
+#done
 
 #python train_linIdwt2d_periodic_modelA.py -gpu -bs 64 -factr 10 -J 4 -L 4 -fs 32 -wave db7 -data fbmB7 -ks 0 -runid 2
 
