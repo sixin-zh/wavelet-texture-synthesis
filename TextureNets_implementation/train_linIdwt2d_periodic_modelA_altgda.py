@@ -11,13 +11,13 @@ import math
 import time
 import numpy as np
 import scipy.io as sio
-from tqdm import tqdm
 
 # import matplotlib
 # matplotlib.use('Agg')
 # import matplotlib.ppyplot as plt
 import tflib as lib
 import tflib.plot
+from tqdm import tqdm
 
 import argparse
 from urllib.parse import urlencode
@@ -217,7 +217,7 @@ for n_iter in range(max_iter):
         
     # Write logs and save samples    
     if n_iter%save_params == (save_params-1):
-        # tflib plot
+        # tflib plot 3:4        
         lib.plot.flush(outdir)
         # plot last sample in z_batches        
         data_eval = netG(noise_eval)
