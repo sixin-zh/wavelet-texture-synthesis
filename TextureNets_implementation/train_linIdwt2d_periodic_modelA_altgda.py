@@ -30,6 +30,7 @@ from utils_arch_stationary import LinIdwt2D
 from utils_arch_wph import DiscriminatorModelA
 from utils_grads import detach_tensors, add_grads, cstmul_grads
 from utils_plot import save2pdf_gray, save2mat_gray
+from utils import save_obj
 
 parser = argparse.ArgumentParser()
 

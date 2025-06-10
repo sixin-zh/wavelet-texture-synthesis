@@ -15,8 +15,16 @@ module load pytorch/1.7.1
 
 cd ~/wavelet-texture-synthesis/famos/
 
+########## Sep 1 ##########
+python train_psgan.py -gpu -lr 5e-5  -its 100 -gzloc 20 -gzgl 0 -runid 2001
+
+
+########## Mai 28 ##########
+#python train_psgan_wgan.py -gpu -gzloc 30 -gzgl 0 -lrD 5e-5 -lrG 5e-5 -la 10 -its 25 -runid 2008
+
+
 ########## Mai 27 ##########
-python train_psgan_wgan.py -gpu -lrD 5e-5 -lrG 5e-5 -la 10 -its 25 -runid 2007
+#python train_psgan_wgan.py -gpu -lrD 5e-5 -lrG 5e-5 -la 10 -its 25 -runid 2007
 
 #python train_psgan_wgan.py -gpu -lrD 0.0001 -lrG 0.0001 -la 10 -its 25 -runid 2006
 

@@ -29,7 +29,7 @@ def flush(outdir=None):
 		x_vals = np.sort(list(_since_beginning[name].keys()))
 		y_vals = [_since_beginning[name][x] for x in x_vals]
 
-		fig = plt.figure()
+		fig = plt.gcf()
 		sizes = [4000,3000]
 		dpi = 300
 		fig.set_size_inches(sizes[0] / dpi, sizes[1] / dpi, forward = False)
