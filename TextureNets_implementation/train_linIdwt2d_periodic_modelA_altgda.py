@@ -181,6 +181,7 @@ Features_real = netD.compute_features(X_real)
 #save2pdf_gray(ori_pdf_name,texture_original,vmin=vmin,vmax=vmax)
 
 #pbar = tqdm(total = max_iter)
+start_time = time.time()
 for n_iter in range(max_iter):
     # TO update D first, then G
     for iter_d in range(CRITIC_ITERS):
@@ -217,7 +218,8 @@ for n_iter in range(max_iter):
         #pbar.set_description("loss %s" % g_loss)
         
     # Write logs and save samples    
-    if n_iter%save_params == (save_params-1):        
+    if n_iter%save_params == (save_params-1):   
+        
         # save eval samples
         data_eval = netG(noise_eval).detach()
         x_eval = data_eval.cpu().numpy()
@@ -232,9 +234,12 @@ for n_iter in range(max_iter):
         Features_eval = netD.compute_features(data_eval)
         angle = netD.compute_feature_angle(Features_real,Features_eval)
         lib.plot.plot('angle', angle.item())
+        # track time
+        lib.plot.plot('time', time.time() - start_time)
         # tflib plot 3:4
         lib.plot.flush(outdir)
-        
+        start_time = time.time()
+
     if n_iter == max_iter-1:
         break # no update of G at last iter
 
