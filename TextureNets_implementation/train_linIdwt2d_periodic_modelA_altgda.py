@@ -217,12 +217,10 @@ for n_iter in range(max_iter):
         #pbar.set_description("loss %s" % g_loss)
         
     # Write logs and save samples    
-    if n_iter%save_params == (save_params-1):
-        # tflib plot 3:4
-        lib.plot.flush(outdir)
-        # plot last sample in z_batches
-        data_eval = netG(noise_eval)
-        x_eval = data_eval.detach().cpu().numpy()
+    if n_iter%save_params == (save_params-1):        
+        # save eval samples
+        data_eval = netG(noise_eval).detach()
+        x_eval = data_eval.cpu().numpy()
         #texture_synthesis = x_eval[0,0,:,:] # (h,w)
         syn_pdf_name = outdir + '/eval_samples'
         # save2pdf_gray(syn_pdf_name,texture_synthesis,vmin=vmin,vmax=vmax)
@@ -230,7 +228,13 @@ for n_iter in range(max_iter):
         for i in range(eval_batch_size):
             texture_synthesis_imgs[:,:,i] = x_eval[i,0,:,:]
         save2mat_gray(syn_pdf_name,texture_synthesis_imgs)
-
+        # compute angles
+        Features_eval = netD.compute_features(data_eval)
+        angle = netD.compute_feature_angle(Features_real,Features_eval)
+        lib.plot.plot('angle', angle.item())
+        # tflib plot 3:4
+        lib.plot.flush(outdir)
+        
     if n_iter == max_iter-1:
         break # no update of G at last iter
 

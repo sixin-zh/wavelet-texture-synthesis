@@ -61,7 +61,20 @@ class DiscriminatorModelA(nn.Module):
         out = torch.mv(features,self.Dw)
         return out
 
+    def compute_feature_angle(self,feature_real,feature_fake):
+        # feature_real, feature_fake: (bs,Features)
+        # compute first the features diff, then its angle with Dv
+        Dv = self.Dw.detach()
+        Dv = Dv.view(-1) # (Features)
+        features_diff = torch.mean(feature_real - feature_fake,dim=0) # (Features)
+        angle = torch.dot(features_diff,Dv)
+        angle = angle / torch.norm(features_diff)
+        angle = angle / torch.norm(Dv)
+        return angle
+    
     def compute_features(self, input):
+        # input: (bs,nc,w,h)
+        # features: (bs,features)
         bs = input.shape[0]                        
         Sim = []
         for op_id in range(len(self.wph_ops)):

@@ -47,7 +47,7 @@ if args.dataname == 'tur2a':
     args.texturePath = 'samples/turbulence/ns_randn4_train_N' + str(args.textureSize)
 else:
     assert(False)
- 
+
 opt = set_default_args(args)
 
 if opt.manualSeed is None:
